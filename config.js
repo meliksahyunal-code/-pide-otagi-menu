@@ -6,9 +6,7 @@ const CONFIG = {
     },
     // Production - Deploy edildikten sonra güncelle
     production: {
-        API_URL: 'https://your-app-name.railway.app/api' // Railway deploy sonrası güncellenecek
-        // veya
-        // API_URL: 'https://your-app-name.onrender.com/api' // Render deploy sonrası güncellenecek
+        API_URL: 'https://pide-otagi-menu.onrender.com/api'
     }
 };
 
