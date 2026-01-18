@@ -111,6 +111,32 @@ class OrderManager {
 // Global order manager instance
 const orderManager = new OrderManager();
 
+// Başarı mesajı göster (otomatik kaybolur)
+function showSuccessMessage(message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+        z-index: 10000;
+        font-weight: 600;
+        animation: slideIn 0.3s ease-out;
+    `;
+    messageDiv.textContent = message;
+    document.body.appendChild(messageDiv);
+
+    // 2 saniye sonra otomatik kaldır
+    setTimeout(() => {
+        messageDiv.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => messageDiv.remove(), 300);
+    }, 2000);
+}
+
 // Sayfa yükleme
 document.addEventListener('DOMContentLoaded', function () {
     renderMenuSelection();
@@ -242,7 +268,9 @@ async function handleCreateOrder() {
         document.getElementById('currentOrderTotal').innerHTML = '<div class="order-total"><span class="total-label">Toplam:</span><span class="total-amount">0₺</span></div>';
 
         renderOrders();
-        alert('Sipariş başarıyla oluşturuldu!');
+
+        // Başarı mesajı göster (otomatik kaybolur)
+        showSuccessMessage('Sipariş başarıyla oluşturuldu!');
 
     } catch (error) {
         console.error('Sipariş oluşturma hatası:', error);
