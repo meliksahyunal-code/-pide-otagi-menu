@@ -240,10 +240,21 @@ async function handleCreateOrder() {
 
     // Backend'e gönder
     try {
+        // Total hesapla - güvenli yöntem
+        let calculatedTotal = 0;
+        try {
+            calculatedTotal = orderManager.currentOrder.getTotal();
+        } catch (e) {
+            console.error('getTotal() hatası, manuel hesaplama yapılıyor:', e);
+            calculatedTotal = orderManager.currentOrder.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        }
+
+        console.log('Hesaplanan total:', calculatedTotal);
+
         const orderData = {
             tableNumber: orderManager.currentOrder.tableNumber,
             items: orderManager.currentOrder.items,
-            total: orderManager.currentOrder.getTotal(),
+            total: calculatedTotal,
             status: 'pending'
         };
 
