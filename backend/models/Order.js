@@ -33,7 +33,7 @@ const orderSchema = new mongoose.Schema({
     },
     total: {
         type: Number,
-        required: true
+        required: false  // Not required - calculated by pre-save hook
     }
 }, {
     timestamps: true
