@@ -203,81 +203,224 @@ function updateCurrentOrderDisplay() {
 }
 
 // Sipariş oluştur
-function handleCreateOrder() {
+async function handleCreateOrder() {
     if (!orderManager.currentOrder || orderManager.currentOrder.items.length === 0) {
         alert('Lütfen en az bir ürün ekleyin!');
         return;
     }
 
-    orderManager.saveCurrentOrder();
+    // Backend'e gönder
+    try {
+        const orderData = {
+            tableNumber: orderManager.currentOrder.tableNumber,
+            items: orderManager.currentOrder.items,
+            total: orderManager.currentOrder.getTotal(),
+            status: 'pending'
+        };
 
-    // Formu sıfırla
-    document.getElementById('tableNumber').value = '';
-    document.getElementById('currentOrderItems').innerHTML = '<p style="color: var(--text-muted); text-align: center;">Henüz ürün eklenmedi</p>';
-    document.getElementById('currentOrderTotal').innerHTML = '<div class="order-total"><span class="total-label">Toplam:</span><span class="total-amount">0₺</span></div>';
+        const response = await fetch(`${API_CONFIG.API_URL}/orders`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
 
-    renderOrders();
-    alert('Sipariş başarıyla oluşturuldu!');
+        if (!response.ok) {
+            throw new Error('Sipariş kaydedilemedi');
+        }
+
+        const savedOrder = await response.json();
+        console.log('Sipariş backend\'e kaydedildi:', savedOrder);
+
+        // localStorage'a da kaydet (fallback)
+        orderManager.saveCurrentOrder();
+
+        // Formu sıfırla
+        document.getElementById('tableNumber').value = '';
+        document.getElementById('currentOrderItems').innerHTML = '<p style="color: var(--text-muted); text-align: center;">Henüz ürün eklenmedi</p>';
+        document.getElementById('currentOrderTotal').innerHTML = '<div class="order-total"><span class="total-label">Toplam:</span><span class="total-amount">0₺</span></div>';
+
+        renderOrders();
+        alert('Sipariş başarıyla oluşturuldu!');
+
+    } catch (error) {
+        console.error('Sipariş oluşturma hatası:', error);
+
+        // Hata olursa localStorage'a kaydet
+        orderManager.saveCurrentOrder();
+
+        // Formu sıfırla
+        document.getElementById('tableNumber').value = '';
+        document.getElementById('currentOrderItems').innerHTML = '<p style="color: var(--text-muted); text-align: center;">Henüz ürün eklenmedi</p>';
+        document.getElementById('currentOrderTotal').innerHTML = '<div class="order-total"><span class="total-label">Toplam:</span><span class="total-amount">0₺</span></div>';
+
+        renderOrders();
+        alert('Sipariş oluşturuldu (yerel kayıt)');
+    }
 }
 
 // Siparişleri render et
-function renderOrders() {
+async function renderOrders() {
     const container = document.getElementById('ordersContainer');
-    const orders = orderManager.getActiveOrders();
 
-    if (orders.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 30px;">Aktif sipariş bulunmuyor</p>';
-        return;
-    }
+    try {
+        // Backend'den siparişleri çek
+        const response = await fetch(`${API_CONFIG.API_URL}/orders/active`);
 
-    let html = '';
-    orders.forEach(order => {
-        const statusClass = `status-${order.status}`;
-        const statusText = {
-            'pending': 'Beklemede',
-            'preparing': 'Hazırlanıyor',
-            'completed': 'Tamamlandı'
-        }[order.status];
+        if (!response.ok) {
+            throw new Error('Siparişler yüklenemedi');
+        }
 
-        html += `
-      <div class="order-card">
-        <div class="order-header">
-          <span class="table-badge">Masa ${order.tableNumber}</span>
-          <span class="status-badge ${statusClass}">${statusText}</span>
-        </div>
-        <div class="order-items">
-          ${order.items.map(item => `
-            <div class="order-item">
-              <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
-              <span>${item.price * item.quantity}₺</span>
+        const orders = await response.json();
+        console.log('Backend\'den alınan siparişler:', orders);
+
+        if (orders.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 30px;">Aktif sipariş bulunmuyor</p>';
+            return;
+        }
+
+        let html = '';
+        orders.forEach(order => {
+            const statusClass = `status-${order.status}`;
+            const statusText = {
+                'pending': 'Beklemede',
+                'preparing': 'Hazırlanıyor',
+                'completed': 'Tamamlandı'
+            }[order.status];
+
+            // Toplam hesapla
+            const total = order.total || order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            html += `
+          <div class="order-card">
+            <div class="order-header">
+              <span class="table-badge">Masa ${order.tableNumber}</span>
+              <span class="status-badge ${statusClass}">${statusText}</span>
             </div>
-          `).join('')}
-        </div>
-        <div class="order-total">
-          <span class="total-label">Toplam:</span>
-          <span class="total-amount">${order.getTotal()}₺</span>
-        </div>
-        <div class="order-actions">
-          ${order.status === 'pending' ? `<button class="btn btn-primary btn-small" onclick="updateStatus(${order.id}, 'preparing')">Hazırlanıyor</button>` : ''}
-          ${order.status === 'preparing' ? `<button class="btn btn-success btn-small" onclick="updateStatus(${order.id}, 'completed')">Tamamlandı</button>` : ''}
-          <button class="btn btn-danger btn-small" onclick="deleteOrderConfirm(${order.id})">Sil</button>
-        </div>
-      </div>
-    `;
-    });
+            <div class="order-items">
+              ${order.items.map(item => `
+                <div class="order-item">
+                  <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
+                  <span>${item.price * item.quantity}₺</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="order-total">
+              <span class="total-label">Toplam:</span>
+              <span class="total-amount">${total}₺</span>
+            </div>
+            <div class="order-actions">
+              ${order.status === 'pending' ? `<button class="btn btn-primary btn-small" onclick="updateStatus('${order._id}', 'preparing')">Hazırlanıyor</button>` : ''}
+              ${order.status === 'preparing' ? `<button class="btn btn-success btn-small" onclick="updateStatus('${order._id}', 'completed')">Tamamlandı</button>` : ''}
+              <button class="btn btn-danger btn-small" onclick="deleteOrderConfirm('${order._id}')">Sil</button>
+            </div>
+          </div>
+        `;
+        });
 
-    container.innerHTML = html;
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error('Siparişleri yükleme hatası:', error);
+
+        // Hata olursa localStorage'dan yükle
+        const orders = orderManager.getActiveOrders();
+
+        if (orders.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 30px;">Aktif sipariş bulunmuyor (çevrimdışı mod)</p>';
+            return;
+        }
+
+        let html = '';
+        orders.forEach(order => {
+            const statusClass = `status-${order.status}`;
+            const statusText = {
+                'pending': 'Beklemede',
+                'preparing': 'Hazırlanıyor',
+                'completed': 'Tamamlandı'
+            }[order.status];
+
+            html += `
+          <div class="order-card">
+            <div class="order-header">
+              <span class="table-badge">Masa ${order.tableNumber}</span>
+              <span class="status-badge ${statusClass}">${statusText}</span>
+            </div>
+            <div class="order-items">
+              ${order.items.map(item => `
+                <div class="order-item">
+                  <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
+                  <span>${item.price * item.quantity}₺</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="order-total">
+              <span class="total-label">Toplam:</span>
+              <span class="total-amount">${order.getTotal()}₺</span>
+            </div>
+            <div class="order-actions">
+              ${order.status === 'pending' ? `<button class="btn btn-primary btn-small" onclick="updateStatus(${order.id}, 'preparing')">Hazırlanıyor</button>` : ''}
+              ${order.status === 'preparing' ? `<button class="btn btn-success btn-small" onclick="updateStatus(${order.id}, 'completed')">Tamamlandı</button>` : ''}
+              <button class="btn btn-danger btn-small" onclick="deleteOrderConfirm(${order.id})">Sil</button>
+            </div>
+          </div>
+        `;
+        });
+
+        container.innerHTML = html;
+    }
 }
 
 // Sipariş durumunu güncelle
-function updateStatus(orderId, newStatus) {
-    orderManager.updateOrderStatus(orderId, newStatus);
-    renderOrders();
+async function updateStatus(orderId, newStatus) {
+    try {
+        const response = await fetch(`${API_CONFIG.API_URL}/orders/${orderId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!response.ok) {
+            throw new Error('Durum güncellenemedi');
+        }
+
+        console.log('Sipariş durumu güncellendi');
+        renderOrders();
+
+    } catch (error) {
+        console.error('Durum güncelleme hatası:', error);
+
+        // Hata olursa localStorage kullan
+        orderManager.updateOrderStatus(orderId, newStatus);
+        renderOrders();
+    }
 }
 
 // Siparişi sil
-function deleteOrderConfirm(orderId) {
-    if (confirm('Bu siparişi silmek istediğinize emin misiniz?')) {
+async function deleteOrderConfirm(orderId) {
+    if (!confirm('Bu siparişi silmek istediğinize emin misiniz?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_CONFIG.API_URL}/orders/${orderId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error('Sipariş silinemedi');
+        }
+
+        console.log('Sipariş silindi');
+        renderOrders();
+
+    } catch (error) {
+        console.error('Silme hatası:', error);
+
+        // Hata olursa localStorage kullan
         orderManager.deleteOrder(orderId);
         renderOrders();
     }
