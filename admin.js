@@ -230,6 +230,9 @@ function updateCurrentOrderDisplay() {
 
 // Sipariş oluştur
 async function handleCreateOrder() {
+    console.log('=== SIPARIŞ OLUŞTURMA BAŞLADI ===');
+    console.log('API_CONFIG:', typeof API_CONFIG !== 'undefined' ? API_CONFIG : 'UNDEFINED!!!');
+
     if (!orderManager.currentOrder || orderManager.currentOrder.items.length === 0) {
         alert('Lütfen en az bir ürün ekleyin!');
         return;
@@ -244,7 +247,13 @@ async function handleCreateOrder() {
             status: 'pending'
         };
 
-        const response = await fetch(`${API_CONFIG.API_URL}/orders`, {
+        console.log('Sipariş verisi:', orderData);
+        console.log('Backend URL:', typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_URL : 'API_CONFIG TANIMSIZ!');
+
+        const apiUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_URL : 'https://pide-otagi-menu.onrender.com/api';
+        console.log('Kullanılacak API URL:', apiUrl);
+
+        const response = await fetch(`${apiUrl}/orders`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -252,8 +261,12 @@ async function handleCreateOrder() {
             body: JSON.stringify(orderData)
         });
 
+        console.log('Backend yanıt durumu:', response.status, response.statusText);
+
         if (!response.ok) {
-            throw new Error('Sipariş kaydedilemedi');
+            const errorText = await response.text();
+            console.error('Backend hatası:', errorText);
+            throw new Error('Sipariş kaydedilemedi: ' + response.status);
         }
 
         const savedOrder = await response.json();
@@ -290,11 +303,16 @@ async function handleCreateOrder() {
 
 // Siparişleri render et
 async function renderOrders() {
+    console.log('=== RENDERİNG ORDERS ===');
     const container = document.getElementById('ordersContainer');
 
     try {
         // Backend'den siparişleri çek
-        const response = await fetch(`${API_CONFIG.API_URL}/orders/active`);
+        const apiUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_URL : 'https://pide-otagi-menu.onrender.com/api';
+        console.log('Siparişler için API URL:', apiUrl);
+
+        const response = await fetch(`${apiUrl}/orders/active`);
+        console.log('Siparişler yanıt durumu:', response.status);
 
         if (!response.ok) {
             throw new Error('Siparişler yüklenemedi');
