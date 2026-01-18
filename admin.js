@@ -366,11 +366,13 @@ async function renderOrders() {
             const statusText = {
                 'pending': 'Beklemede',
                 'preparing': 'Hazırlanıyor',
+                'ready': 'Hazır',
+                'delivered': 'Teslim Edildi',
                 'completed': 'Tamamlandı'
             }[order.status];
 
             // Safely calculate total - handle both Order instances and plain objects from localStorage
-            const total = order.getTotal ? order.getTotal() : order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const total = order.total || (order.items && order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)) || 0;
 
             html += `
           <div class="order-card">
