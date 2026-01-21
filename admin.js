@@ -196,9 +196,10 @@ function addToOrder(itemId) {
         orderManager.createOrder(tableNumber);
     }
 
-    // Porsiyon seçimi: 0.5, 1, veya 1.5
+    // Porsiyon seçimi: 0.5, 1, veya 1.5 (virgül veya nokta ile)
     const quantityStr = prompt('Porsiyon miktarı (0.5, 1, veya 1.5):', '1');
-    const quantity = parseFloat(quantityStr) || 1;
+    // Türkçe virgül kullanımını destekle (1,5 => 1.5)
+    const quantity = parseFloat(quantityStr.replace(',', '.')) || 1;
 
     // Sadece 0.5, 1, 1.5 ve tam sayı değerlerine izin ver
     if (quantity > 0) {
