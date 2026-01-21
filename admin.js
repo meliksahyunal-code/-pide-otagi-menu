@@ -1,21 +1,25 @@
-// Menü verileri - menu.js'den import
+// Menü verileri - menu.js ile senkronize edildi
 const menuData = {
     pides: [
-        { id: 1, name: "Kıymalı Pide", price: 140 },
-        { id: 2, name: "Çökeleği Pide", price: 130 },
-        { id: 3, name: "Kuşbaşılı Pide", price: 180 },
-        { id: 4, name: "Karışık Pide", price: 160 },
-        { id: 5, name: "Kuşbaşı Kaşarlı Pide", price: 210 },
-        { id: 6, name: "Kıymalı Kaşarlı Pide", price: 180 },
-        { id: 7, name: "Patatesli Pide", price: 110 },
-        { id: 8, name: "Lahmacun", price: 35 }
+        { id: 1, name: "Çökeleği Pide", price: 130 },
+        { id: 2, name: "Kıymalı Pide", price: 140 },
+        { id: 3, name: "Kuşbaşılı Pide", price: 200 },
+        { id: 4, name: "Patatesli Pide", price: 130 },
+        { id: 5, name: "Karışık Pide", price: 230 },
+        { id: 6, name: "Kuşbaşı Kaşarlı Pide", price: 230 },
+        { id: 7, name: "Kıymalı Kaşarlı Pide", price: 180 }
     ],
     drinks: [
-        { id: 9, name: "Su", price: 15 },
-        { id: 10, name: "Ayran", price: 20 },
-        { id: 11, name: "Salça", price: 30 },
-        { id: 12, name: "Gazlı İçecekler", price: 35 },
-        { id: 13, name: "Cam Şişe Gazlı İçecekler", price: 45 }
+        { id: 8, name: "Ayran", price: 25 },
+        { id: 9, name: "Kola Kutu", price: 25 },
+        { id: 10, name: "Kola Şişe", price: 40 },
+        { id: 11, name: "Gazlı İçecek", price: 40 },
+        { id: 12, name: "Meyve Suyu", price: 60 },
+        { id: 13, name: "Fanta Suyu", price: 30 },
+        { id: 14, name: "Gazoz", price: 30 },
+        { id: 15, name: "İcetea", price: 30 },
+        { id: 16, name: "Su", price: 17 },
+        { id: 17, name: "Doğal Çay", price: 20 }
     ]
 };
 
@@ -192,9 +196,11 @@ function addToOrder(itemId) {
         orderManager.createOrder(tableNumber);
     }
 
-    const quantityStr = prompt('Adet (varsayılan: 1):', '1');
-    const quantity = parseInt(quantityStr) || 1;
+    // Porsiyon seçimi: 0.5, 1, veya 1.5
+    const quantityStr = prompt('Porsiyon miktarı (0.5, 1, veya 1.5):', '1');
+    const quantity = parseFloat(quantityStr) || 1;
 
+    // Sadece 0.5, 1, 1.5 ve tam sayı değerlerine izin ver
     if (quantity > 0) {
         orderManager.addItemToCurrentOrder(itemId, quantity);
         updateCurrentOrderDisplay();
