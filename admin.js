@@ -26,165 +26,58 @@ const menuData = {
 // Tüm ürünleri tek array'de birleştir
 const allItems = [...menuData.pides, ...menuData.drinks];
 
-// Sipariş sınıfı
-class Order {
-    constructor(tableNumber) {
-        this.id = Date.now();
-        this.tableNumber = tableNumber;
-        this.items = [];
-        this.status = 'pending'; // pending, preparing, completed
-        this.timestamp = new Date().toISOString();
-    }
+// Global state
+let currentOrder = {
+    tableNumber: '',
+    items: []
+};
 
-    addItem(itemId, quantity) {
-        const item = allItems.find(i => i.id === itemId);
-        if (!item) return;
+let selectedPortion = 1;
+let pendingItemId = null;
 
-        const existingItem = this.items.find(i => i.id === itemId);
-        if (existingItem) {
-            existingItem.quantity += quantity;
-        } else {
-            this.items.push({
-                id: item.id,
-                name: item.name,
-                price: item.price,
-                quantity: quantity
-            });
+// ============= PORTION MODAL LOGIC =============
+function openPortionModal(itemId) {
+    const item = allItems.find(i => i.id === itemId);
+    if (!item) return;
+
+    pendingItemId = itemId;
+
+    const modal = document.getElementById('portionModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSubtitle = document.getElementById('modalSubtitle');
+
+    modalTitle.textContent = 'Porsiyon Seçin';
+    modalSubtitle.textContent = `${item.name} - ${item.price}₺/porsiyon`;
+
+    // Reset selection to 1
+    selectedPortion = 1;
+    document.querySelectorAll('.portion-btn').forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.dataset.portion === '1') {
+            btn.classList.add('selected');
         }
-    }
-
-    getTotal() {
-        return this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    }
-}
-
-// Sipariş yöneticisi
-class OrderManager {
-    constructor() {
-        this.orders = this.loadOrders();
-        this.currentOrder = null;
-    }
-
-    loadOrders() {
-        const stored = localStorage.getItem('pideOtagiOrders');
-        return stored ? JSON.parse(stored) : [];
-    }
-
-    saveOrders() {
-        localStorage.setItem('pideOtagiOrders', JSON.stringify(this.orders));
-    }
-
-    createOrder(tableNumber) {
-        this.currentOrder = new Order(tableNumber);
-    }
-
-    addItemToCurrentOrder(itemId, quantity) {
-        if (!this.currentOrder) return;
-        this.currentOrder.addItem(itemId, quantity);
-    }
-
-    saveCurrentOrder() {
-        if (!this.currentOrder) return;
-        this.orders.push(this.currentOrder);
-        this.saveOrders();
-        this.currentOrder = null;
-    }
-
-    updateOrderStatus(orderId, newStatus) {
-        const order = this.orders.find(o => o.id === orderId);
-        if (order) {
-            order.status = newStatus;
-            this.saveOrders();
-        }
-    }
-
-    deleteOrder(orderId) {
-        this.orders = this.orders.filter(o => o.id !== orderId);
-        this.saveOrders();
-    }
-
-    getActiveOrders() {
-        return this.orders.filter(o => o.status !== 'completed');
-    }
-
-    getAllOrders() {
-        return this.orders;
-    }
-}
-
-// Global order manager instance
-const orderManager = new OrderManager();
-
-// Başarı mesajı göster (otomatik kaybolur)
-function showSuccessMessage(message) {
-    const messageDiv = document.createElement('div');
-    messageDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #2ecc71, #27ae60);
-        color: white;
-        padding: 15px 25px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
-        z-index: 10000;
-        font-weight: 600;
-        animation: slideIn 0.3s ease-out;
-    `;
-    messageDiv.textContent = message;
-    document.body.appendChild(messageDiv);
-
-    // 2 saniye sonra otomatik kaldır
-    setTimeout(() => {
-        messageDiv.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => messageDiv.remove(), 300);
-    }, 2000);
-}
-
-// Sayfa yükleme
-document.addEventListener('DOMContentLoaded', function () {
-    renderMenuSelection();
-    renderOrders();
-
-    // Event listeners
-    document.getElementById('createOrderBtn').addEventListener('click', handleCreateOrder);
-});
-
-// Menü seçimini render et
-function renderMenuSelection() {
-    const container = document.getElementById('menuSelection');
-
-    let html = '<h3 style="color: var(--primary-gold); margin-bottom: 20px;">Pide Çeşitleri</h3>';
-    html += '<div class="menu-grid">';
-
-    menuData.pides.forEach(item => {
-        html += `
-      <div class="menu-item" onclick="addToOrder(${item.id})">
-        <div class="item-name">${item.name}</div>
-        <div class="item-price">${item.price}<span class="currency">₺</span></div>
-      </div>
-    `;
     });
 
-    html += '</div>';
-    html += '<h3 style="color: var(--primary-gold); margin: 30px 0 20px;">İçecekler</h3>';
-    html += '<div class="menu-grid">';
-
-    menuData.drinks.forEach(item => {
-        html += `
-      <div class="menu-item" onclick="addToOrder(${item.id})">
-        <div class="item-name">${item.name}</div>
-        <div class="item-price">${item.price}<span class="currency">₺</span></div>
-      </div>
-    `;
-    });
-
-    html += '</div>';
-    container.innerHTML = html;
+    modal.classList.add('active');
 }
 
-// Mevcut siparişe ürün ekle
-function addToOrder(itemId) {
+function closePortionModal() {
+    const modal = document.getElementById('portionModal');
+    modal.classList.remove('active');
+    pendingItemId = null;
+    selectedPortion = 1;
+}
+
+function confirmPortionSelection() {
+    if (pendingItemId !== null) {
+        addItemToCurrentOrder(pendingItemId, selectedPortion);
+        closePortionModal();
+        updateCurrentOrderDisplay();
+    }
+}
+
+// ============= ORDER MANAGEMENT =============
+function addItemToCurrentOrder(itemId, quantity) {
     const tableNumber = document.getElementById('tableNumber').value;
 
     if (!tableNumber) {
@@ -192,260 +85,251 @@ function addToOrder(itemId) {
         return;
     }
 
-    if (!orderManager.currentOrder) {
-        orderManager.createOrder(tableNumber);
-    }
+    currentOrder.tableNumber = tableNumber;
 
-    // Porsiyon seçimi: 0.5, 1, veya 1.5 (virgül veya nokta ile)
-    const quantityStr = prompt('Porsiyon miktarı (0.5, 1, veya 1.5):', '1');
-    // Türkçe virgül kullanımını destekle (1,5 => 1.5)
-    const quantity = parseFloat(quantityStr.replace(',', '.')) || 1;
+    const item = allItems.find(i => i.id === itemId);
+    if (!item) return;
 
-    // Sadece 0.5, 1, 1.5 ve tam sayı değerlerine izin ver
-    if (quantity > 0) {
-        orderManager.addItemToCurrentOrder(itemId, quantity);
-        updateCurrentOrderDisplay();
+    const existingItem = currentOrder.items.find(i => i.id === itemId);
+    if (existingItem) {
+        existingItem.quantity += quantity;
+    } else {
+        currentOrder.items.push({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: quantity
+        });
     }
 }
 
-// Mevcut sipariş gösterimini güncelle
 function updateCurrentOrderDisplay() {
     const container = document.getElementById('currentOrderItems');
     const totalContainer = document.getElementById('currentOrderTotal');
 
-    if (!orderManager.currentOrder || orderManager.currentOrder.items.length === 0) {
+    if (!currentOrder.items || currentOrder.items.length === 0) {
         container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Henüz ürün eklenmedi</p>';
         totalContainer.innerHTML = '<div class="order-total"><span class="total-label">Toplam:</span><span class="total-amount">0₺</span></div>';
         return;
     }
 
     let html = '';
-    orderManager.currentOrder.items.forEach(item => {
+    let total = 0;
+
+    currentOrder.items.forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
         html += `
       <div class="order-item">
         <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
-        <span>${item.price * item.quantity}₺</span>
+        <span>${itemTotal}₺</span>
       </div>
     `;
     });
 
     container.innerHTML = html;
-
-    const total = orderManager.currentOrder.getTotal();
     totalContainer.innerHTML = `<div class="order-total"><span class="total-label">Toplam:</span><span class="total-amount">${total}₺</span></div>`;
 }
 
-// Sipariş oluştur
-async function handleCreateOrder() {
-    console.log('=== SIPARIŞ OLUŞTURMA BAŞLADI ===');
-    console.log('API_CONFIG:', typeof API_CONFIG !== 'undefined' ? API_CONFIG : 'UNDEFINED!!!');
+async function createOrder() {
+    const tableNumber = document.getElementById('tableNumber').value;
 
-    if (!orderManager.currentOrder || orderManager.currentOrder.items.length === 0) {
-        alert('Lütfen en az bir ürün ekleyin!');
+    if (!tableNumber) {
+        alert('Lütfen masa numarası seçin!');
         return;
     }
 
-    // Backend'e gönder
+    if (!currentOrder.items || currentOrder.items.length === 0) {
+        alert('Sipariş boş! Lütfen ürün ekleyin.');
+        return;
+    }
+
     try {
-        // Total hesapla - güvenli yöntem
-        let calculatedTotal = 0;
-        try {
-            calculatedTotal = orderManager.currentOrder.getTotal();
-        } catch (e) {
-            console.error('getTotal() hatası, manuel hesaplama yapılıyor:', e);
-            calculatedTotal = orderManager.currentOrder.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        }
-
-        console.log('Hesaplanan total:', calculatedTotal);
-
-        const orderData = {
-            tableNumber: orderManager.currentOrder.tableNumber,
-            items: orderManager.currentOrder.items,
-            total: calculatedTotal,
-            status: 'pending'
-        };
-
-        console.log('Sipariş verisi:', orderData);
-        console.log('Backend URL:', typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_URL : 'API_CONFIG TANIMSIZ!');
-
-        const apiUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_URL : 'https://pide-otagi-menu.onrender.com/api';
-        console.log('Kullanılacak API URL:', apiUrl);
-
-        const response = await fetch(`${apiUrl}/orders`, {
+        const response = await fetch(`${API_BASE_URL}/api/orders`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(orderData)
+            body: JSON.stringify({
+                tableNumber: tableNumber,
+                items: currentOrder.items
+            })
         });
 
-        console.log('Backend yanıt durumu:', response.status, response.statusText);
-
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Backend hatası:', errorText);
-            throw new Error('Sipariş kaydedilemedi: ' + response.status);
+            const error = await response.json();
+            throw new Error(error.error || 'Sipariş oluşturulamadı');
         }
 
-        const savedOrder = await response.json();
-        console.log('Sipariş backend\'e kaydedildi:', savedOrder);
+        const order = await response.json();
 
-        // localStorage'a da kaydet (fallback)
-        orderManager.saveCurrentOrder();
-
-        // Formu sıfırla
+        // Reset current order
+        currentOrder = {
+            tableNumber: '',
+            items: []
+        };
         document.getElementById('tableNumber').value = '';
-        document.getElementById('currentOrderItems').innerHTML = '<p style="color: var(--text-muted); text-align: center;">Henüz ürün eklenmedi</p>';
-        document.getElementById('currentOrderTotal').innerHTML = '<div class="order-total"><span class="total-label">Toplam:</span><span class="total-amount">0₺</span></div>';
+        updateCurrentOrderDisplay();
 
-        renderOrders();
+        alert('Sipariş başarıyla kaydedildi!');
 
-        // Başarı mesajı göster (otomatik kaybolur)
-        showSuccessMessage('Sipariş başarıyla oluşturuldu!');
-
+        // Refresh active orders if on that tab
+        const activeTab = document.querySelector('.tab-content.active');
+        if (activeTab && activeTab.id === 'tab-active-orders') {
+            loadActiveOrders();
+        }
     } catch (error) {
         console.error('Sipariş oluşturma hatası:', error);
-
-        // Hata olursa localStorage'a kaydet
-        orderManager.saveCurrentOrder();
-
-        // Formu sıfırla
-        document.getElementById('tableNumber').value = '';
-        document.getElementById('currentOrderItems').innerHTML = '<p style="color: var(--text-muted); text-align: center;">Henüz ürün eklenmedi</p>';
-        document.getElementById('currentOrderTotal').innerHTML = '<div class="order-total"><span class="total-label">Toplam:</span><span class="total-amount">0₺</span></div>';
-
-        renderOrders();
-        alert('Sipariş oluşturuldu (yerel kayıt)');
+        alert(`Hata: ${error.message}`);
     }
 }
 
-// Siparişleri render et
-async function renderOrders() {
-    console.log('=== RENDERİNG ORDERS ===');
-    const container = document.getElementById('ordersContainer');
-
+// ============= ACTIVE ORDERS MANAGEMENT =============
+async function loadActiveOrders() {
     try {
-        // Backend'den siparişleri çek
-        const apiUrl = typeof API_CONFIG !== 'undefined' ? API_CONFIG.API_URL : 'https://pide-otagi-menu.onrender.com/api';
-        console.log('Siparişler için API URL:', apiUrl);
-
-        const response = await fetch(`${apiUrl}/orders/active`);
-        console.log('Siparişler yanıt durumu:', response.status);
-
-        if (!response.ok) {
-            throw new Error('Siparişler yüklenemedi');
-        }
+        const response = await fetch(`${API_BASE_URL}/api/orders/active`);
+        if (!response.ok) throw new Error('Siparişler yüklenemedi');
 
         const orders = await response.json();
-        console.log('Backend\'den alınan siparişler:', orders);
+        displayActiveOrders(orders);
+    } catch (error) {
+        console.error('Sipariş yükleme hatası:', error);
+        document.getElementById('ordersContainer').innerHTML =
+            '<p style="color: red; text-align: center;">Siparişler yüklenemedi. Sunucuya bağlanılamıyor.</p>';
+    }
+}
 
-        if (orders.length === 0) {
-            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 30px;">Aktif sipariş bulunmuyor</p>';
-            return;
+function displayActiveOrders(orders) {
+    const container = document.getElementById('ordersContainer');
+
+    if (!orders || orders.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Henüz aktif sipariş yok</p>';
+        return;
+    }
+
+    let html = '';
+
+    // Group orders by table
+    const ordersByTable = {};
+    orders.forEach(order => {
+        if (!ordersByTable[order.tableNumber]) {
+            ordersByTable[order.tableNumber] = [];
         }
+        ordersByTable[order.tableNumber].push(order);
+    });
 
-        let html = '';
-        orders.forEach(order => {
-            const statusClass = `status-${order.status}`;
-            const statusText = {
-                'pending': 'Beklemede',
-                'preparing': 'Hazırlanıyor',
-                'completed': 'Tamamlandı'
-            }[order.status];
-
-            // Toplam hesapla
+    // Display orders grouped by table
+    Object.entries(ordersByTable).forEach(([tableNum, tableOrders]) => {
+        tableOrders.forEach(order => {
+            const statusText = getStatusText(order.status);
+            const statusClass = getStatusClass(order.status);
             const total = order.total || order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
             html += `
-          <div class="order-card">
-            <div class="order-header">
-              <span class="table-badge">Masa ${order.tableNumber}</span>
-              <span class="status-badge ${statusClass}">${statusText}</span>
-            </div>
-            <div class="order-items">
-              ${order.items.map(item => `
-                <div class="order-item">
-                  <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
-                  <span>${item.price * item.quantity}₺</span>
-                </div>
-              `).join('')}
-            </div>
-            <div class="order-total">
-              <span class="total-label">Toplam:</span>
-              <span class="total-amount">${total}₺</span>
-            </div>
-            <div class="order-actions">
-              ${order.status === 'pending' ? `<button class="btn btn-primary btn-small" onclick="updateStatus('${order._id}', 'preparing')">Hazırlanıyor</button>` : ''}
-              ${order.status === 'preparing' ? `<button class="btn btn-success btn-small" onclick="updateStatus('${order._id}', 'completed')">Tamamlandı</button>` : ''}
-              <button class="btn btn-danger btn-small" onclick="deleteOrderConfirm('${order._id}')">Sil</button>
-            </div>
+        <div class="order-card ${statusClass}">
+          <div class="order-header">
+            <span class="table-badge">Masa ${order.tableNumber}</span>
+            <span class="status-badge">${statusText}</span>
           </div>
-        `;
-        });
-
-        container.innerHTML = html;
-
-    } catch (error) {
-        console.error('Siparişleri yükleme hatası:', error);
-
-        // Hata olursa localStorage'dan yükle
-        const orders = orderManager.getActiveOrders();
-
-        if (orders.length === 0) {
-            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 30px;">Aktif sipariş bulunmuyor (çevrimdışı mod)</p>';
-            return;
-        }
-
-        let html = '';
-        orders.forEach(order => {
-            const statusClass = `status-${order.status}`;
-            const statusText = {
-                'pending': 'Beklemede',
-                'preparing': 'Hazırlanıyor',
-                'ready': 'Hazır',
-                'delivered': 'Teslim Edildi',
-                'completed': 'Tamamlandı'
-            }[order.status];
-
-            // Safely calculate total - handle both Order instances and plain objects from localStorage
-            const total = order.total || (order.items && order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)) || 0;
-
-            html += `
-          <div class="order-card">
-            <div class="order-header">
-              <span class="table-badge">Masa ${order.tableNumber}</span>
-              <span class="status-badge ${statusClass}">${statusText}</span>
-            </div>
-            <div class="order-items">
-              ${order.items.map(item => `
-                <div class="order-item">
-                  <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
-                  <span>${item.price * item.quantity}₺</span>
-                </div>
-              `).join('')}
-            </div>
-            <div class="order-total">
-              <span class="total-label">Toplam:</span>
-              <span class="total-amount">${total}₺</span>
-            </div>
-            <div class="order-actions">
-              ${order.status === 'pending' ? `<button class="btn btn-primary btn-small" onclick="updateStatus(${order.id}, 'preparing')">Hazırlanıyor</button>` : ''}
-              ${order.status === 'preparing' ? `<button class="btn btn-success btn-small" onclick="updateStatus(${order.id}, 'completed')">Tamamlandı</button>` : ''}
-              <button class="btn btn-danger btn-small" onclick="deleteOrderConfirm(${order.id})">Sil</button>
-            </div>
+          <div class="order-items">
+            ${order.items.map(item => `
+              <div class="order-item">
+                <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
+                <span>${item.price * item.quantity}₺</span>
+              </div>
+            `).join('')}
           </div>
-        `;
+          <div class="order-total">
+            <span class="total-label">Toplam:</span>
+            <span class="total-amount">${total}₺</span>
+          </div>
+          <div class="order-actions">
+            ${getOrderActionButtons(order)}
+          </div>
+        </div>
+      `;
         });
+    });
 
-        container.innerHTML = html;
-    }
+    container.innerHTML = html;
+
+    // Add event listeners to action buttons
+    attachOrderActionListeners();
 }
 
-// Sipariş durumunu güncelle
-async function updateStatus(orderId, newStatus) {
+function getStatusText(status) {
+    const statusMap = {
+        'pending': 'Bekliyor',
+        'preparing': 'Hazırlanıyor',
+        'delivered': 'Teslim Edildi',
+        'cancelled': 'İptal Edildi',
+        'paid': 'Ödendi'
+    };
+    return statusMap[status] || status;
+}
+
+function getStatusClass(status) {
+    return `order-status-${status}`;
+}
+
+function getOrderActionButtons(order) {
+    const tableNumber = order.tableNumber;
+
+    // Check if there are multiple orders for this table
+    const showTablePayment = true; // Always show for now
+
+    let buttons = '';
+
+    if (order.status === 'pending' || order.status === 'preparing') {
+        buttons += `
+      <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order._id}', 'delivered')">
+        🍽️ Teslim Edildi
+      </button>
+      <button class="btn btn-danger btn-sm" onclick="cancelOrder('${order._id}')">
+        ❌ İptal Et
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="updateOrderStatus('${order._id}', 'paid')">
+        ✅ Ödendi
+      </button>
+    `;
+    } else if (order.status === 'delivered') {
+        buttons += `
+      <button class="btn btn-success btn-sm" disabled>
+        ✓ Teslim Edildi
+      </button>
+      <button class="btn btn-danger btn-sm" onclick="cancelOrder('${order._id}')">
+        ❌ İptal Et
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="updateOrderStatus('${order._id}', 'paid')">
+        ✅ Ödendi
+      </button>
+    `;
+    } else if (order.status === 'cancelled') {
+        buttons += '<span style="color: var(--text-muted);">İptal edilmiş sipariş</span>';
+    } else if (order.status === 'paid') {
+        buttons += '<span style="color: var(--success);">✓ Ödeme tamamlandı</span>';
+    }
+
+    // Add table-wide payment button
+    if (showTablePayment && (order.status === 'pending' || order.status === 'preparing' || order.status === 'delivered')) {
+        buttons += `
+      <button class="btn btn-warning btn-table-pay" onclick="payAllTableOrders('${tableNumber}')">
+        💰 Masa Tamamen Ödendi
+      </button>
+    `;
+    }
+
+    return buttons;
+}
+
+function attachOrderActionListeners() {
+    // Listeners are handled by onclick attributes for simplicity
+}
+
+async function updateOrderStatus(orderId, newStatus) {
     try {
-        const response = await fetch(`${API_CONFIG.API_URL}/orders/${orderId}`, {
-            method: 'PUT',
+        const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/status`, {
+            method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -453,44 +337,270 @@ async function updateStatus(orderId, newStatus) {
         });
 
         if (!response.ok) {
-            throw new Error('Durum güncellenemedi');
+            const error = await response.json();
+            throw new Error(error.error || 'Durum güncellenemedi');
         }
 
-        console.log('Sipariş durumu güncellendi');
-        renderOrders();
+        await loadActiveOrders();
 
+        // Refresh statistics if on that tab
+        const activeTab = document.querySelector('.tab-content.active');
+        if (activeTab && activeTab.id === 'tab-statistics') {
+            loadStatistics();
+        }
     } catch (error) {
         console.error('Durum güncelleme hatası:', error);
-
-        // Hata olursa localStorage kullan
-        orderManager.updateOrderStatus(orderId, newStatus);
-        renderOrders();
+        alert(`Hata: ${error.message}`);
     }
 }
 
-// Siparişi sil
-async function deleteOrderConfirm(orderId) {
-    if (!confirm('Bu siparişi silmek istediğinize emin misiniz?')) {
+async function cancelOrder(orderId) {
+    if (!confirm('Bu siparişi iptal etmek istediğinizden emin misiniz?')) {
+        return;
+    }
+
+    await updateOrderStatus(orderId, 'cancelled');
+}
+
+async function payAllTableOrders(tableNumber) {
+    if (!confirm(`Masa ${tableNumber}'teki tüm siparişler ödenmiş olarak işaretlenecek. Onaylıyor musunuz?`)) {
         return;
     }
 
     try {
-        const response = await fetch(`${API_CONFIG.API_URL}/orders/${orderId}`, {
-            method: 'DELETE'
+        const response = await fetch(`${API_BASE_URL}/api/tables/${tableNumber}/pay-all`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
         if (!response.ok) {
-            throw new Error('Sipariş silinemedi');
+            const error = await response.json();
+            throw new Error(error.error || 'Ödeme işlemi başarısız');
         }
 
-        console.log('Sipariş silindi');
-        renderOrders();
+        const result = await response.json();
+        alert(result.message);
+        await loadActiveOrders();
 
+        // Refresh statistics if on that tab
+        const activeTab = document.querySelector('.tab-content.active');
+        if (activeTab && activeTab.id === 'tab-statistics') {
+            loadStatistics();
+        }
     } catch (error) {
-        console.error('Silme hatası:', error);
-
-        // Hata olursa localStorage kullan
-        orderManager.deleteOrder(orderId);
-        renderOrders();
+        console.error('Toplu ödeme hatası:', error);
+        alert(`Hata: ${error.message}`);
     }
 }
+
+// ============= STATISTICS DASHBOARD =============
+let currentStatsPeriod = 'daily';
+
+async function loadStatistics() {
+    const period = currentStatsPeriod;
+
+    try {
+        let endpoint = '';
+        if (period === 'daily') {
+            endpoint = '/api/statistics/daily';
+        } else if (period === 'weekly') {
+            // For weekly, we'll use daily with last 7 days
+            endpoint = '/api/statistics/daily';
+        } else if (period === 'monthly') {
+            endpoint = '/api/statistics/monthly';
+        }
+
+        const response = await fetch(`${API_BASE_URL}${endpoint}`);
+        if (!response.ok) throw new Error('İstatistikler yüklenemedi');
+
+        const stats = await response.json();
+        displayStatistics(stats);
+    } catch (error) {
+        console.error('İstatistik yükleme hatası:', error);
+        document.getElementById('stat-total-orders').textContent = 'Hata';
+        document.getElementById('stat-total-revenue').textContent = 'Hata';
+        document.getElementById('stat-top-item').textContent = 'Hata';
+        document.getElementById('stat-avg-order').textContent = 'Hata';
+    }
+}
+
+function displayStatistics(stats) {
+    // Update summary cards
+    document.getElementById('stat-total-orders').textContent = stats.totalOrders || 0;
+    document.getElementById('stat-total-revenue').textContent = `${stats.totalRevenue || 0}₺`;
+    document.getElementById('stat-top-item').textContent = stats.mostPopularItem ? stats.mostPopularItem.name : '-';
+    document.getElementById('stat-avg-order').textContent = `${stats.averageOrderValue || 0}₺`;
+
+    // Update top items table
+    displayTopItems(stats.itemBreakdown || [], stats.totalRevenue || 1);
+
+    // Update status breakdown
+    displayStatusBreakdown(stats.statusBreakdown || {});
+}
+
+function displayTopItems(items, totalRevenue) {
+    const tbody = document.getElementById('top-items-tbody');
+
+    if (!items || items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Henüz veri yok</td></tr>';
+        return;
+    }
+
+    let html = '';
+    items.forEach((item, index) => {
+        const percentage = totalRevenue > 0 ? Math.round((item.revenue / totalRevenue) * 100) : 0;
+        html += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${item.name}</td>
+        <td>${item.count.toFixed(1)}</td>
+        <td>${item.revenue}₺</td>
+        <td>${percentage}%</td>
+      </tr>
+    `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+function displayStatusBreakdown(statusBreakdown) {
+    const container = document.getElementById('status-breakdown');
+
+    const statuses = [
+        { key: 'pending', label: 'Bekliyor', icon: '⏳', color: '#f4a261' },
+        { key: 'preparing', label: 'Hazırlanıyor', icon: '👨‍🍳', color: '#e9c46a' },
+        { key: 'delivered', label: 'Teslim Edildi', icon: '✅', color: '#2a9d8f' },
+        { key: 'paid', label: 'Ödendi', icon: '💰', color: '#264653' },
+        { key: 'cancelled', label: 'İptal', icon: '❌', color: '#e76f51' }
+    ];
+
+    let html = '';
+    statuses.forEach(status => {
+        const count = statusBreakdown[status.key] || 0;
+        html += `
+      <div class="status-card" style="border-left: 4px solid ${status.color}">
+        <div class="status-icon">${status.icon}</div>
+        <div class="status-label">${status.label}</div>
+        <div class="status-count">${count}</div>
+      </div>
+    `;
+    });
+
+    container.innerHTML = html;
+}
+
+// ============= TAB NAVIGATION =============
+function initTabNavigation() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTab = button.dataset.tab;
+
+            // Update active button
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            // Update active content
+            tabContents.forEach(content => content.classList.remove('active'));
+            const targetContent = document.getElementById(`tab-${targetTab}`);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+
+            // Load data based on tab
+            if (targetTab === 'active-orders') {
+                loadActiveOrders();
+            } else if (targetTab === 'statistics') {
+                loadStatistics();
+            }
+        });
+    });
+}
+
+// ============= MENU RENDERING =============
+function renderMenu() {
+    const menuSelection = document.getElementById('menuSelection');
+
+    let html = '<h3>Pideler</h3><div class="menu-grid">';
+    menuData.pides.forEach(item => {
+        html += `
+      <div class="menu-item" data-item-id="${item.id}">
+        <span class="item-name">${item.name}</span>
+        <span class="item-price">${item.price}₺</span>
+      </div>
+    `;
+    });
+    html += '</div>';
+
+    html += '<h3 style="margin-top: 30px;">İçecekler</h3><div class="menu-grid">';
+    menuData.drinks.forEach(item => {
+        html += `
+      <div class="menu-item" data-item-id="${item.id}">
+        <span class="item-name">${item.name}</span>
+        <span class="item-price">${item.price}₺</span>
+      </div>
+    `;
+    });
+    html += '</div>';
+
+    menuSelection.innerHTML = html;
+
+    // Add click listeners to menu items
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const itemId = parseInt(item.dataset.itemId);
+            openPortionModal(itemId);
+        });
+    });
+}
+
+// ============= INITIALIZATION =============
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize menu
+    renderMenu();
+
+    // Initialize tab navigation
+    initTabNavigation();
+
+    // Portion modal event listeners
+    document.querySelectorAll('.portion-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.portion-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedPortion = parseFloat(btn.dataset.portion);
+        });
+    });
+
+    document.getElementById('confirmPortion').addEventListener('click', confirmPortionSelection);
+    document.getElementById('cancelPortion').addEventListener('click', closePortionModal);
+
+    document.querySelector('.modal-overlay').addEventListener('click', closePortionModal);
+
+    // Create order button
+    document.getElementById('createOrderBtn').addEventListener('click', createOrder);
+
+    // Period selector for statistics
+    document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentStatsPeriod = btn.dataset.period;
+            loadStatistics();
+        });
+    });
+
+    // Load active orders on initial load
+    loadActiveOrders();
+
+    // Auto-refresh active orders every 30 seconds
+    setInterval(() => {
+        const activeTab = document.querySelector('.tab-content.active');
+        if (activeTab && activeTab.id === 'tab-active-orders') {
+            loadActiveOrders();
+        }
+    }, 30000);
+});

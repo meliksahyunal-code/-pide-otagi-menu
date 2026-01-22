@@ -11,65 +11,160 @@
 <body>
     <div class="container">
         <header class="admin-header">
-            <h1 class="admin-title">🍽️ Garson Sipariş Yönetim Paneli</h1>
-            <p class="subtitle">Pide Otağı - Sipariş Takip Sistemi</p>
+            <h1 class="admin-title">🍽️ Pide Otağı - Yönetim Paneli</h1>
+            <p class="subtitle">Sipariş ve İstatistik Takip Sistemi</p>
         </header>
 
-        <!-- Sipariş Oluşturma Bölümü -->
-        <div class="admin-controls">
-            <div class="control-group">
-                <label for="tableNumber">Masa Numarası</label>
-                <select id="tableNumber">
-                    <option value="">Masa Seçin</option>
-                    <option value="1">Masa 1</option>
-                    <option value="2">Masa 2</option>
-                    <option value="3">Masa 3</option>
-                    <option value="4">Masa 4</option>
-                    <option value="5">Masa 5</option>
-                    <option value="6">Masa 6</option>
-                    <option value="7">Masa 7</option>
-                    <option value="8">Masa 8</option>
-                    <option value="9">Masa 9</option>
-                    <option value="10">Masa 10</option>
-                    <option value="11">Masa 11</option>
-                    <option value="12">Masa 12</option>
-                    <option value="13">Masa 13</option>
-                    <option value="14">Masa 14</option>
-                    <option value="15">Masa 15</option>
-                </select>
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" data-tab="orders">📋 Sipariş Ver</button>
+            <button class="tab-btn" data-tab="statistics">📊 İstatistikler</button>
+            <button class="tab-btn" data-tab="active-orders">🍽️ Aktif Siparişler</button>
+        </div>
+
+        <!-- Orders Tab -->
+        <div id="tab-orders" class="tab-content active">
+            <!-- Sipariş Oluşturma Bölümü -->
+            <div class="admin-controls">
+                <div class="control-group">
+                    <label for="tableNumber">Masa Numarası</label>
+                    <select id="tableNumber">
+                        <option value="">Masa Seçin</option>
+                        <option value="1">Masa 1</option>
+                        <option value="2">Masa 2</option>
+                        <option value="3">Masa 3</option>
+                        <option value="4">Masa 4</option>
+                        <option value="5">Masa 5</option>
+                        <option value="6">Masa 6</option>
+                        <option value="7">Masa 7</option>
+                        <option value="8">Masa 8</option>
+                        <option value="9">Masa 9</option>
+                        <option value="10">Masa 10</option>
+                        <option value="11">Masa 11</option>
+                        <option value="12">Masa 12</option>
+                        <option value="13">Masa 13</option>
+                        <option value="14">Masa 14</option>
+                        <option value="15">Masa 15</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Menü Seçimi -->
+            <section class="orders-section">
+                <h2 class="section-title">Menüyü Seçin</h2>
+                <div id="menuSelection"></div>
+            </section>
+
+            <!-- Mevcut Sipariş -->
+            <section class="orders-section">
+                <h2 class="section-title">Mevcut Sipariş</h2>
+                <div id="currentOrderItems">
+                    <p style="color: var(--text-muted); text-align: center;">Henüz ürün eklenmedi</p>
+                </div>
+                <div id="currentOrderTotal">
+                    <div class="order-total">
+                        <span class="total-label">Toplam:</span>
+                        <span class="total-amount">0₺</span>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <button id="createOrderBtn" class="btn btn-primary">Siparişi Kaydet</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Statistics Tab -->
+        <div id="tab-statistics" class="tab-content">
+            <div class="statistics-container">
+                <div class="period-selector">
+                    <button class="period-btn active" data-period="daily">Bugün</button>
+                    <button class="period-btn" data-period="weekly">Bu Hafta</button>
+                    <button class="period-btn" data-period="monthly">Bu Ay</button>
+                </div>
+
+                <div class="stats-summary-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-label">Toplam Sipariş</div>
+                        <div class="stat-value" id="stat-total-orders">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-label">Toplam Gelir</div>
+                        <div class="stat-value" id="stat-total-revenue">0₺</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-label">En Çok Satılan</div>
+                        <div class="stat-value" id="stat-top-item">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-label">Ort. Sipariş Tutarı</div>
+                        <div class="stat-value" id="stat-avg-order">0₺</div>
+                    </div>
+                </div>
+
+                <div class="stats-table-section">
+                    <h3>En Çok Satılan Ürünler</h3>
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Sıra</th>
+                                <th>Ürün</th>
+                                <th>Adet</th>
+                                <th>Gelir</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-items-tbody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-muted);">Veri yükleniyor...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="stats-status-section">
+                    <h3>Sipariş Durum Dağılımı</h3>
+                    <div id="status-breakdown" class="status-grid">
+                        <!-- Status cards will be inserted here -->
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Menü Seçimi -->
-        <section class="orders-section">
-            <h2 class="section-title">Menüyü Seçin</h2>
-            <div id="menuSelection"></div>
-        </section>
-
-        <!-- Mevcut Sipariş -->
-        <section class="orders-section">
-            <h2 class="section-title">Mevcut Sipariş</h2>
-            <div id="currentOrderItems">
-                <p style="color: var(--text-muted); text-align: center;">Henüz ürün eklenmedi</p>
-            </div>
-            <div id="currentOrderTotal">
-                <div class="order-total">
-                    <span class="total-label">Toplam:</span>
-                    <span class="total-amount">0₺</span>
+        <!-- Active Orders Tab -->
+        <div id="tab-active-orders" class="tab-content">
+            <section class="orders-section">
+                <h2 class="section-title">Aktif Siparişler</h2>
+                <div id="ordersContainer" class="orders-grid">
+                    <!-- Siparişler buraya JavaScript ile eklenecek -->
                 </div>
-            </div>
-            <div style="margin-top: 20px; text-align: center;">
-                <button id="createOrderBtn" class="btn btn-primary">Siparişi Kaydet</button>
-            </div>
-        </section>
+            </section>
+        </div>
+    </div>
 
-        <!-- Aktif Siparişler -->
-        <section class="orders-section">
-            <h2 class="section-title">Aktif Siparişler</h2>
-            <div id="ordersContainer" class="orders-grid">
-                <!-- Siparişler buraya JavaScript ile eklenecek -->
+    <!-- Portion Selection Modal -->
+    <div id="portionModal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h3 id="modalTitle">Porsiyon Seçin</h3>
+            <p id="modalSubtitle" class="modal-subtitle"></p>
+            <div class="portion-buttons">
+                <button class="portion-btn" data-portion="0.5">0.5</button>
+                <button class="portion-btn selected" data-portion="1">1</button>
+                <button class="portion-btn" data-portion="1.5">1.5</button>
+                <button class="portion-btn" data-portion="2">2</button>
+                <button class="portion-btn" data-portion="2.5">2.5</button>
+                <button class="portion-btn" data-portion="3">3</button>
             </div>
-        </section>
+            <div class="modal-actions">
+                <button id="confirmPortion" class="btn btn-primary">✓ Ekle</button>
+                <button id="cancelPortion" class="btn btn-secondary">✗ İptal</button>
+            </div>
+        </div>
     </div>
 
     <script src="config.js"></script>
