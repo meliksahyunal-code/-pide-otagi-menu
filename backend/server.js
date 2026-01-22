@@ -46,7 +46,7 @@ app.get('/api/orders', async (req, res) => {
 app.get('/api/orders/active', async (req, res) => {
     try {
         const orders = await Order.find({
-            status: { $in: ['pending', 'preparing', 'delivered'] }
+            status: { $in: ['pending', 'preparing', 'ready', 'delivered'] }
         }).sort({ createdAt: -1 });
         res.json(orders);
     } catch (error) {
@@ -95,7 +95,7 @@ app.put('/api/orders/:id', async (req, res) => {
     try {
         const { status } = req.body;
 
-        const validStatuses = ['pending', 'preparing', 'delivered', 'cancelled', 'paid'];
+        const validStatuses = ['pending', 'preparing', 'ready', 'delivered', 'cancelled', 'paid'];
         if (!status || !validStatuses.includes(status)) {
             return res.status(400).json({
                 error: `Geçersiz sipariş durumu. İzin verilen: ${validStatuses.join(', ')}`
@@ -123,7 +123,7 @@ app.patch('/api/orders/:id/status', async (req, res) => {
     try {
         const { status } = req.body;
 
-        const validStatuses = ['pending', 'preparing', 'delivered', 'cancelled', 'paid'];
+        const validStatuses = ['pending', 'preparing', 'ready', 'delivered', 'cancelled', 'paid'];
         if (!status || !validStatuses.includes(status)) {
             return res.status(400).json({
                 error: `Geçersiz sipariş durumu. İzin verilen: ${validStatuses.join(', ')}`
@@ -226,6 +226,7 @@ app.get('/api/statistics/daily', async (req, res) => {
         const statusBreakdown = {
             pending: orders.filter(o => o.status === 'pending').length,
             preparing: orders.filter(o => o.status === 'preparing').length,
+            ready: orders.filter(o => o.status === 'ready').length,
             delivered: orders.filter(o => o.status === 'delivered').length,
             paid: orders.filter(o => o.status === 'paid').length,
             cancelled: orders.filter(o => o.status === 'cancelled').length
@@ -287,6 +288,7 @@ app.get('/api/statistics/monthly', async (req, res) => {
         const statusBreakdown = {
             pending: orders.filter(o => o.status === 'pending').length,
             preparing: orders.filter(o => o.status === 'preparing').length,
+            ready: orders.filter(o => o.status === 'ready').length,
             delivered: orders.filter(o => o.status === 'delivered').length,
             paid: orders.filter(o => o.status === 'paid').length,
             cancelled: orders.filter(o => o.status === 'cancelled').length
