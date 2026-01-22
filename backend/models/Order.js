@@ -16,7 +16,7 @@ const orderItemSchema = new mongoose.Schema({
     quantity: {
         type: Number,
         required: true,
-        min: 1
+        min: 0.5  // Support half portions
     }
 });
 
@@ -28,7 +28,7 @@ const orderSchema = new mongoose.Schema({
     items: [orderItemSchema],
     status: {
         type: String,
-        enum: ['pending', 'preparing', 'completed'],
+        enum: ['pending', 'preparing', 'delivered', 'cancelled', 'paid'],
         default: 'pending'
     },
     total: {
