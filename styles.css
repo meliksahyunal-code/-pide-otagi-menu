@@ -711,20 +711,71 @@ body::before {
 
 /* Responsive */
 @media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
+  .container {
+    max-width: 100%;
+  }
+
+  .admin-header {
+    padding: 15px;
+  }
+
+  .admin-title {
+    font-size: 1.5rem;
+  }
+
   .tab-navigation {
     flex-direction: column;
+    gap: 8px;
+  }
+
+  .tab-btn {
+    padding: 12px 20px;
+    font-size: 0.95rem;
   }
 
   .stats-summary-cards {
     grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .stat-card {
+    padding: 20px;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
   }
 
   .portion-buttons {
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .portion-btn {
+    padding: 18px;
+    font-size: 1.3rem;
+  }
+
+  .modal-content {
+    padding: 25px;
+    width: 95%;
+  }
+
+  .modal-content h3 {
+    font-size: 1.4rem;
   }
 
   .menu-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .menu-item {
+    padding: 15px;
   }
 
   .order-actions {
@@ -733,12 +784,105 @@ body::before {
 
   .order-actions .btn {
     width: 100%;
+    padding: 12px;
   }
 
   .admin-controls {
     grid-template-columns: 1fr;
   }
+
+  .orders-section {
+    padding: 15px;
+  }
+
+  .order-card {
+    padding: 15px;
+  }
+
+  .stats-table {
+    font-size: 0.9rem;
+  }
+
+  .stats-table th,
+  .stats-table td {
+    padding: 10px 8px;
+  }
+
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Make buttons more touch-friendly */
+  .btn {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+
+  .control-group select,
+  .control-group input {
+    min-height: 44px;
+    font-size: 16px;
+    /* Prevents zoom on iOS */
+  }
+
+  /* Improve table scrolling on mobile */
+  .stats-table-section {
+    overflow-x: auto;
+  }
 }
+
+/* Tablet specific (768px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .stats-summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .portion-buttons {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Small mobile (max 480px) */
+@media (max-width: 480px) {
+  .table-badge {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+  }
+
+  .order-item {
+    font-size: 0.9rem;
+  }
+
+  .order-total {
+    font-size: 1.1rem;
+  }
+}
+
+/* Prevent text selection on buttons (better UX on touch) */
+.btn,
+.tab-btn,
+.portion-btn,
+.menu-item,
+.period-btn {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Improve touch feedback */
+.btn:active,
+.tab-btn:active,
+.portion-btn:active,
+.menu-item:active {
+  transform: scale(0.98);
+}
+
 
 /* Animations */
 @keyframes fadeInUp {

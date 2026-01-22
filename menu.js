@@ -1,25 +1,25 @@
 // Menü verileri
 const menuData = {
   pides: [
-    { name: "Çökeleği Pide", price: 130 },
-    { name: "Kıymalı Pide", price: 140 },
+    { name: "Çökelekli Pide", price: 130 },
+    { name: "Kıymalı Pide", price: 150 },
     { name: "Kuşbaşılı Pide", price: 200 },
     { name: "Patatesli Pide", price: 130 },
-    { name: "Karışık Pide", price: 230 },
+    { name: "Karışık Pide", price: 170 },
     { name: "Kuşbaşı Kaşarlı Pide", price: 230 },
     { name: "Kıymalı Kaşarlı Pide", price: 180 }
   ],
   drinks: [
     { name: "Ayran", price: 25 },
-    { name: "Kola Kutu", price: 25 },
+    { name: "Kola Kutu", price: 60 },
     { name: "Kola Şişe", price: 40 },
-    { name: "Gazlı İçecek", price: 40 },
     { name: "Meyve Suyu", price: 60 },
-    { name: "Fanta Suyu", price: 30 },
-    { name: "Gazoz", price: 30 },
-    { name: "İcetea", price: 30 },
-    { name: "Su", price: 17 },
-    { name: "Doğal Çay", price: 20 }
+    { name: "Gazoz", price: 60 },
+    { name: "İcetea", price: 60 },
+    { name: "Su", price: 15 },
+    { name: "Double Çay", price: 20 },
+    { name: "Şalgam", price: 35 },
+    { name: "Maden Suyu", price: 40 }
   ]
 };
 

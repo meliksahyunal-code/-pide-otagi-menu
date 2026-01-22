@@ -1,25 +1,25 @@
 // Menü verileri - menu.js ile senkronize edildi
 const menuData = {
     pides: [
-        { id: 1, name: "Çökeleği Pide", price: 130 },
-        { id: 2, name: "Kıymalı Pide", price: 140 },
+        { id: 1, name: "Çökelekli Pide", price: 130 },
+        { id: 2, name: "Kıymalı Pide", price: 150 },
         { id: 3, name: "Kuşbaşılı Pide", price: 200 },
         { id: 4, name: "Patatesli Pide", price: 130 },
-        { id: 5, name: "Karışık Pide", price: 230 },
+        { id: 5, name: "Karışık Pide", price: 170 },
         { id: 6, name: "Kuşbaşı Kaşarlı Pide", price: 230 },
         { id: 7, name: "Kıymalı Kaşarlı Pide", price: 180 }
     ],
     drinks: [
         { id: 8, name: "Ayran", price: 25 },
-        { id: 9, name: "Kola Kutu", price: 25 },
+        { id: 9, name: "Kola Kutu", price: 60 },
         { id: 10, name: "Kola Şişe", price: 40 },
-        { id: 11, name: "Gazlı İçecek", price: 40 },
-        { id: 12, name: "Meyve Suyu", price: 60 },
-        { id: 13, name: "Fanta Suyu", price: 30 },
-        { id: 14, name: "Gazoz", price: 30 },
-        { id: 15, name: "İcetea", price: 30 },
-        { id: 16, name: "Su", price: 17 },
-        { id: 17, name: "Doğal Çay", price: 20 }
+        { id: 11, name: "Meyve Suyu", price: 60 },
+        { id: 12, name: "Gazoz", price: 60 },
+        { id: 13, name: "İcetea", price: 60 },
+        { id: 14, name: "Su", price: 15 },
+        { id: 15, name: "Double Çay", price: 20 },
+        { id: 16, name: "Şalgam", price: 35 },
+        { id: 17, name: "Maden Suyu", price: 40 }
     ]
 };
 
@@ -90,17 +90,15 @@ function addItemToCurrentOrder(itemId, quantity) {
     const item = allItems.find(i => i.id === itemId);
     if (!item) return;
 
-    const existingItem = currentOrder.items.find(i => i.id === itemId);
-    if (existingItem) {
-        existingItem.quantity += quantity;
-    } else {
-        currentOrder.items.push({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: quantity
-        });
-    }
+    // CRITICAL: Do NOT combine items with same ID
+    // Each add creates a separate line for kitchen to see individual orders
+    // Example: Person A orders 1.5x, Person B orders 0.5x = 2 separate lines
+    currentOrder.items.push({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: quantity
+    });
 }
 
 function updateCurrentOrderDisplay() {
@@ -592,6 +590,61 @@ document.addEventListener('DOMContentLoaded', () => {
             loadStatistics();
         });
     });
+
+    // Clear test data button
+    const clearTestDataBtn = document.getElementById('clearTestDataBtn');
+    if (clearTestDataBtn) {
+        clearTestDataBtn.addEventListener('click', async () => {
+            const confirmation = confirm(
+                '⚠️ DİKKAT!\n\n' +
+                'Bu işlem TÜM siparişleri kalıcı olarak silecektir.\n' +
+                'Bu işlem geri alınamaz!\n\n' +
+                'Devam etmek istediğinizden emin misiniz?'
+            );
+
+            if (!confirmation) return;
+
+            // Double confirmation for safety
+            const doubleCheck = prompt(
+                'Onaylamak için "SİL" yazın (büyük harflerle):'
+            );
+
+            if (doubleCheck !== 'SİL') {
+                alert('İşlem iptal edildi.');
+                return;
+            }
+
+            try {
+                // Get all orders
+                const response = await fetch(`${API_BASE_URL}/api/orders`);
+                if (!response.ok) throw new Error('Siparişler yüklenemedi');
+
+                const orders = await response.json();
+
+                // Delete each order
+                let deletedCount = 0;
+                for (const order of orders) {
+                    try {
+                        const deleteResponse = await fetch(`${API_BASE_URL}/api/orders/${order._id}`, {
+                            method: 'DELETE'
+                        });
+                        if (deleteResponse.ok) deletedCount++;
+                    } catch (err) {
+                        console.error(`Sipariş silinemedi: ${order._id}`, err);
+                    }
+                }
+
+                alert(`✅ ${deletedCount} sipariş başarıyla silindi!`);
+
+                // Refresh displays
+                loadActiveOrders();
+                loadStatistics();
+            } catch (error) {
+                console.error('Toplu silme hatası:', error);
+                alert(`❌ Hata: ${error.message}`);
+            }
+        });
+    }
 
     // Load active orders on initial load
     loadActiveOrders();
