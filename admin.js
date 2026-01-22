@@ -293,6 +293,9 @@ function getOrderActionButtons(order) {
 
     let buttons = '';
 
+    // Debug log
+    console.log('Getting buttons for order:', order._id, 'status:', order.status);
+
     // Waiter can only mark as "Teslim Edildi" when status is "ready"
     if (order.status === 'pending' || order.status === 'preparing') {
         buttons += `
@@ -336,6 +339,7 @@ function getOrderActionButtons(order) {
     `;
     }
 
+    console.log('Generated buttons:', buttons);
     return buttons;
 }
 

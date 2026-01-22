@@ -261,6 +261,51 @@ body::before {
   border-color: var(--text-light);
 }
 
+/* Button sizes */
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
+/* Button color variants */
+.btn-success {
+  background: linear-gradient(135deg, #2a9d8f 0%, #38ef7d 100%);
+  color: white;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #268c7f 0%, #2dd46b 100%);
+}
+
+.btn-success:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #d42d40 0%, #e04d37 100%);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #f4a261 0%, #e9c46a 100%);
+  color: var(--primary-dark);
+}
+
+.btn-warning:hover {
+  background: linear-gradient(135deg, #e89451 0%, #dab65a 100%);
+}
+
+.btn-table-pay {
+  width: 100%;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
 /* Statistics Dashboard */
 .statistics-container {
   animation: fadeIn 0.5s ease;
