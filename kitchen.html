@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mutfak Paneli - Pide Otağı</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Kitchen-specific styles */
+        .kitchen-header {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        }
+
+        .order-card.order-status-ready {
+            background: rgba(56, 239, 125, 0.2);
+            border-left: 5px solid #38ef7d;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(56, 239, 125, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 40px rgba(56, 239, 125, 0.6);
+            }
+        }
+
+        .kitchen-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .kitchen-actions .btn {
+            flex: 1;
+        }
+
+        .new-order-badge {
+            background: #e94560;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="admin-header kitchen-header">
+            <h1 class="admin-title">🔥 Mutfak Paneli - Pide Otağı</h1>
+            <p class="subtitle">Sipariş Görüntüleme ve Durum Yönetimi</p>
+            <div style="margin-top: 15px;">
+                <span id="orderCount" class="new-order-badge">0 Bekleyen Sipariş</span>
+            </div>
+        </header>
+
+        <!-- Filter buttons -->
+        <div style="display: flex; gap: 15px; margin-bottom: 30px; justify-content: center; flex-wrap: wrap;">
+            <button class="period-btn active" data-filter="all">Tümü</button>
+            <button class="period-btn" data-filter="pending">Bekliyor</button>
+            <button class="period-btn" data-filter="preparing">Hazırlanıyor</button>
+            <button class="period-btn" data-filter="ready">Hazır</button>
+        </div>
+
+        <!-- Orders Section -->
+        <section class="orders-section">
+            <div id="kitchenOrders" class="orders-grid">
+                <!-- Orders will be loaded here -->
+            </div>
+        </section>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="kitchen.js"></script>
+</body>
+
+</html>

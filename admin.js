@@ -49,11 +49,24 @@ function openPortionModal(itemId) {
     modalTitle.textContent = 'Porsiyon Seçin';
     modalSubtitle.textContent = `${item.name} - ${item.price}₺/porsiyon`;
 
+    // Check if item is a beverage (id >= 8)
+    const isBeverage = item.id >= 8;
+
     // Reset selection to 1
     selectedPortion = 1;
     document.querySelectorAll('.portion-btn').forEach(btn => {
+        const portion = btn.dataset.portion;
+
+        // Hide 0.5 for beverages
+        if (isBeverage && portion === '0.5') {
+            btn.style.display = 'none';
+        } else {
+            btn.style.display = 'block';
+        }
+
+        // Select default
         btn.classList.remove('selected');
-        if (btn.dataset.portion === '1') {
+        if (portion === '1') {
             btn.classList.add('selected');
         }
     });
@@ -226,7 +239,10 @@ function displayActiveOrders(orders) {
             html += `
         <div class="order-card ${statusClass}">
           <div class="order-header">
-            <span class="table-badge">Masa ${order.tableNumber}</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <input type="checkbox" class="order-checkbox" data-order-id="${order._id}" style="width: 20px; height: 20px; cursor: pointer;">
+              <span class="table-badge">Masa ${order.tableNumber}</span>
+            </div>
             <span class="status-badge">${statusText}</span>
           </div>
           <div class="order-items">
@@ -259,6 +275,7 @@ function getStatusText(status) {
     const statusMap = {
         'pending': 'Bekliyor',
         'preparing': 'Hazırlanıyor',
+        'ready': '✅ Hazır',
         'delivered': 'Teslim Edildi',
         'cancelled': 'İptal Edildi',
         'paid': 'Ödendi'
@@ -272,31 +289,33 @@ function getStatusClass(status) {
 
 function getOrderActionButtons(order) {
     const tableNumber = order.tableNumber;
-
-    // Check if there are multiple orders for this table
-    const showTablePayment = true; // Always show for now
+    const showTablePayment = true;
 
     let buttons = '';
 
+    // Waiter can only mark as "Teslim Edildi" when status is "ready"
     if (order.status === 'pending' || order.status === 'preparing') {
         buttons += `
-      <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order._id}', 'delivered')">
-        🍽️ Teslim Edildi
-      </button>
+      <div style="text-align: center; color: var(--text-muted); padding: 10px;">
+        ⏳ Mutfakta hazırlanıyor...
+      </div>
       <button class="btn btn-danger btn-sm" onclick="cancelOrder('${order._id}')">
         ❌ İptal Et
       </button>
-      <button class="btn btn-primary btn-sm" onclick="updateOrderStatus('${order._id}', 'paid')">
-        ✅ Ödendi
+    `;
+    } else if (order.status === 'ready') {
+        buttons += `
+      <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order._id}', 'delivered')" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); animation: pulse 2s infinite;">
+        🍽️ Teslim Edildi (Masaya Götür)
+      </button>
+      <button class="btn btn-danger btn-sm" onclick="cancelOrder('${order._id}')">
+        ❌ İptal Et
       </button>
     `;
     } else if (order.status === 'delivered') {
         buttons += `
       <button class="btn btn-success btn-sm" disabled>
         ✓ Teslim Edildi
-      </button>
-      <button class="btn btn-danger btn-sm" onclick="cancelOrder('${order._id}')">
-        ❌ İptal Et
       </button>
       <button class="btn btn-primary btn-sm" onclick="updateOrderStatus('${order._id}', 'paid')">
         ✅ Ödendi
@@ -309,7 +328,7 @@ function getOrderActionButtons(order) {
     }
 
     // Add table-wide payment button
-    if (showTablePayment && (order.status === 'pending' || order.status === 'preparing' || order.status === 'delivered')) {
+    if (showTablePayment && (order.status === 'ready' || order.status === 'delivered')) {
         buttons += `
       <button class="btn btn-warning btn-table-pay" onclick="payAllTableOrders('${tableNumber}')">
         💰 Masa Tamamen Ödendi
@@ -469,6 +488,7 @@ function displayStatusBreakdown(statusBreakdown) {
     const statuses = [
         { key: 'pending', label: 'Bekliyor', icon: '⏳', color: '#f4a261' },
         { key: 'preparing', label: 'Hazırlanıyor', icon: '👨‍🍳', color: '#e9c46a' },
+        { key: 'ready', label: 'Hazır', icon: '✅', color: '#38ef7d' },
         { key: 'delivered', label: 'Teslim Edildi', icon: '✅', color: '#2a9d8f' },
         { key: 'paid', label: 'Ödendi', icon: '💰', color: '#264653' },
         { key: 'cancelled', label: 'İptal', icon: '❌', color: '#e76f51' }
@@ -646,6 +666,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Select all orders checkbox
+    const selectAllCheckbox = document.getElementById('selectAllOrders');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', (e) => {
+            const checkboxes = document.querySelectorAll('.order-checkbox');
+            checkboxes.forEach(cb => cb.checked = e.target.checked);
+            updateDeleteButtonVisibility();
+        });
+    }
+
+    // Delete selected orders button
+    if (deleteSelectedBtn) {
+        deleteSelectedBtn.addEventListener('click', async () => {
+            const selectedCheckboxes = document.querySelectorAll('.order-checkbox:checked');
+            const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.orderId);
+
+            if (selectedIds.length === 0) {
+                alert('Lütfen silmek için sipariş seçin');
+                return;
+            }
+
+            const confirmation = confirm(
+                `${selectedIds.length} sipariş silinecek. Emin misiniz?`
+            );
+
+            if (!confirmation) return;
+
+            try {
+                let deletedCount = 0;
+                for (const orderId of selectedIds) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+                            method: 'DELETE'
+                        });
+                        if (response.ok) deletedCount++;
+                    } catch (err) {
+                        console.error(`Silme hatası: ${orderId}`, err);
+                    }
+                }
+
+                alert(`✅ ${deletedCount} sipariş silindi!`);
+                loadActiveOrders();
+                loadStatistics();
+
+                if (selectAllCheckbox) selectAllCheckbox.checked = false;
+            } catch (error) {
+                console.error('Toplu silme hatası:', error);
+                alert(`❌ Hata: ${error.message}`);
+            }
+        });
+    }
+
     // Load active orders on initial load
     loadActiveOrders();
 
@@ -656,4 +730,21 @@ document.addEventListener('DOMContentLoaded', () => {
             loadActiveOrders();
         }
     }, 30000);
+});
+
+// Helper function to show/hide delete button based on selection
+function updateDeleteButtonVisibility() {
+    const deleteBtn = document.getElementById('deleteSelectedBtn');
+    const selectedCheckboxes = document.querySelectorAll('.order-checkbox:checked');
+
+    if (deleteBtn) {
+        deleteBtn.style.display = selectedCheckboxes.length > 0 ? 'block' : 'none';
+    }
+}
+
+// Add listener to checkboxes after orders load
+document.addEventListener('change', (e) => {
+    if (e.target.classList.contains('order-checkbox')) {
+        updateDeleteButtonVisibility();
+    }
 });

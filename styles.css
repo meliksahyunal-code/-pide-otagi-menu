@@ -621,6 +621,12 @@ body::before {
   border-left: 4px solid #03a9f4;
 }
 
+.order-status-ready {
+  background: rgba(56, 239, 125, 0.2);
+  border-left: 5px solid #38ef7d;
+  box-shadow: 0 0 20px rgba(56, 239, 125, 0.3);
+}
+
 .order-status-delivered {
   background: rgba(42, 157, 143, 0.1);
   border-left: 4px solid #2a9d8f;
