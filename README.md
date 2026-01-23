@@ -110,10 +110,15 @@ Detaylı rehber için [DEPLOYMENT.md](DEPLOYMENT.md) dosyasına bakın.
 
 ## 🚢 Deployment
 
-### Backend: Railway veya Render
-### Frontend: Netlify veya Vercel
+### Backend: Render (✅ Deployed)
+**Production URL:** https://pide-otagi-menu.onrender.com
 
-Detaylı deployment rehberi için [DEPLOYMENT.md](DEPLOYMENT.md) dosyasına bakın.
+### Frontend: Cloudflare Pages (Önerilir - Türkiye'den erişilebilir)
+- ♾️ **Unlimited bandwidth** ve **unlimited builds**
+- 🔒 Ücretsiz DDoS koruması
+- ⚡ Türkiye dahil 300+ şehirde CDN
+
+Detaylı deployment rehberi için [CLOUDFLARE_DEPLOYMENT.md](CLOUDFLARE_DEPLOYMENT.md) dosyasına bakın.
 
 ## 💻 Geliştirme
 
@@ -198,8 +203,8 @@ curl -X POST http://localhost:3000/api/orders \
 
 ## 📱 QR Kod Oluşturma
 
-1. Frontend'i deploy edin (Netlify/Vercel)
-2. `index.html` URL'ini alın
+1. Frontend'i deploy edin (Cloudflare Pages)
+2. `index.html` URL'ini alın (örn: `https://pide-otagi-menu.pages.dev`)
 3. QR kod oluşturucu kullanın: https://www.qr-code-generator.com/
 4. QR kodu yazdırıp masalara yerleştirin
 

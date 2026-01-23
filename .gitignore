@@ -23,5 +23,6 @@ backend/node_modules/
 backend/.env
 backend/*.log
 
-# Netlify
-.netlify/
+# Cloudflare
+.wrangler/
+wrangler.toml
