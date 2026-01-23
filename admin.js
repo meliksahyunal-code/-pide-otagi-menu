@@ -35,28 +35,51 @@ let currentOrder = {
 let selectedPortion = 1;
 let pendingItemId = null;
 
-// ============= TABLE SELECTION LOGIC =============
+// ============= TABLE SELECTION LOGIC (MODAL VERSION) =============
 function initTableSelection() {
-    const tableCards = document.querySelectorAll('.table-card');
+    const modal = document.getElementById('tableMapModal');
+    const openBtn = document.getElementById('openTableMapBtn');
+    const closeBtn = document.querySelector('.table-modal-close');
+    const overlay = document.querySelector('.table-modal-overlay');
+    const tableButtons = document.querySelectorAll('.table-btn');
     const tableNumberInput = document.getElementById('tableNumber');
-    const tableDisplay = document.getElementById('selectedTableDisplay');
+    const selectedTableText = document.getElementById('selectedTableText');
 
-    tableCards.forEach(card => {
-        card.addEventListener('click', () => {
-            const tableNum = card.dataset.table;
+    // Open modal
+    openBtn.addEventListener('click', () => {
+        modal.classList.add('active');
+    });
 
-            // Remove selected class from all cards
-            tableCards.forEach(c => c.classList.remove('selected'));
+    // Close modal
+    const closeModal = () => {
+        modal.classList.remove('active');
+    };
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', closeModal);
 
-            // Add selected class to clicked card
-            card.classList.add('selected');
+    // Table selection
+    tableButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tableNum = btn.dataset.table;
+
+            // Remove selected class from all buttons
+            tableButtons.forEach(b => b.classList.remove('selected'));
+
+            // Add selected class to clicked button
+            btn.classList.add('selected');
 
             // Update hidden input and display
             tableNumberInput.value = tableNum;
-            tableDisplay.innerHTML = `<span style="color: var(--primary-gold); font-size: 1.5rem;">📍 Masa ${tableNum}</span>`;
+            selectedTableText.innerHTML = `📍 Masa ${tableNum}`;
+            selectedTableText.classList.remove('placeholder');
 
             // Update current order table number
             currentOrder.tableNumber = tableNum;
+
+            // Close modal after short delay for visual feedback
+            setTimeout(() => {
+                closeModal();
+            }, 300);
 
             console.log(`Table ${tableNum} selected`);
         });

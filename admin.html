@@ -25,73 +25,84 @@
 
         <!-- Orders Tab -->
         <div id="tab-orders" class="tab-content active">
-            <!-- Masa Seçimi - Visual Map -->
+            <!-- Masa Seçimi - Button to open modal -->
             <div class="table-map-container">
                 <h2 class="section-title">Masa Seçin</h2>
                 <input type="hidden" id="tableNumber" value="">
-                <div id="selectedTableDisplay" class="selected-table-display">
-                    <span class="placeholder">👆 Lütfen bir masa seçin</span>
-                </div>
+                <button id="openTableMapBtn" class="table-map-trigger-btn">
+                    <span id="selectedTableText" class="placeholder">👆 Lütfen bir masa seçin</span>
+                </button>
+            </div>
 
-                <!-- Restaurant Floor Plan -->
-                <div class="restaurant-layout">
-                    <!-- Top markers -->
-                    <div class="layout-marker kasa-marker">KASA</div>
-                    <div class="layout-marker wc-marker">WC</div>
-
-                    <!-- Main oval area -->
-                    <div class="oval-area">
-                        <!-- Left side tables -->
-                        <div class="table-group left-wall">
-                            <div class="table-card" data-table="1">1</div>
-                            <div class="table-card" data-table="2">2</div>
-                            <div class="table-card" data-table="3">3</div>
-                            <div class="table-card" data-table="4">4</div>
-                            <div class="table-card" data-table="5">5</div>
-                        </div>
-
-                        <!-- Bottom left tables -->
-                        <div class="table-group bottom-left">
-                            <div class="table-card" data-table="6">6</div>
-                        </div>
-
-                        <!-- Bottom center tables -->
-                        <div class="table-group bottom-center">
-                            <div class="table-card" data-table="7">7</div>
-                        </div>
-
-                        <!-- Bottom right tables -->
-                        <div class="table-group bottom-right">
-                            <div class="table-card" data-table="8">8</div>
-                            <div class="table-card" data-table="9">9</div>
-                        </div>
-
-                        <!-- Right side tables -->
-                        <div class="table-group right-wall">
-                            <div class="table-card" data-table="10">10</div>
-                            <div class="table-card" data-table="11">11</div>
-                            <div class="table-card" data-table="12">12</div>
-                        </div>
-
-                        <!-- Center area with tandır -->
-                        <div class="center-area">
-                            <div class="table-card" data-table="13">13</div>
-                            <div class="table-group center-ring">
-                                <div class="table-card" data-table="14">14</div>
-                                <div class="tandir-oven">🔥<br>TANDIR</div>
-                                <div class="table-card" data-table="15">15</div>
-                                <div class="table-card" data-table="16">16</div>
-                            </div>
-                        </div>
+            <!-- Table Map Modal -->
+            <div id="tableMapModal" class="table-modal">
+                <div class="table-modal-overlay"></div>
+                <div class="table-modal-content">
+                    <div class="table-modal-header">
+                        <h3>Masa Seçin</h3>
+                        <button class="table-modal-close">&times;</button>
                     </div>
 
-                    <!-- Outdoor tables -->
-                    <div class="layout-marker kapi-marker">KAPI</div>
-                    <div class="outdoor-tables">
-                        <div class="table-card outdoor-table" data-table="K1">K1</div>
-                        <div class="table-card outdoor-table" data-table="K2">K2</div>
-                        <div class="table-card outdoor-table" data-table="K3">K3</div>
-                        <div class="table-card outdoor-table" data-table="K4">K4</div>
+                    <!-- Restaurant Floor Plan -->
+                    <div class="restaurant-layout">
+                        <!-- Top markers -->
+                        <div class="layout-marker kasa-marker">KASA</div>
+                        <div class="layout-marker wc-marker">WC</div>
+
+                        <!-- Main oval area -->
+                        <div class="oval-area">
+                            <!-- Left side tables (1-5) -->
+                            <div class="table-group left-wall">
+                                <div class="table-btn" data-table="1">1</div>
+                                <div class="table-btn" data-table="2">2</div>
+                                <div class="table-btn" data-table="3">3</div>
+                                <div class="table-btn" data-table="4">4</div>
+                                <div class="table-btn" data-table="5">5</div>
+                            </div>
+
+                            <!-- Bottom left table (6) -->
+                            <div class="table-group bottom-left">
+                                <div class="table-btn" data-table="6">6</div>
+                            </div>
+
+                            <!-- Bottom center table (7) -->
+                            <div class="table-group bottom-center">
+                                <div class="table-btn" data-table="7">7</div>
+                            </div>
+
+                            <!-- Bottom right tables (8, 9) -->
+                            <div class="table-group bottom-right">
+                                <div class="table-btn" data-table="8">8</div>
+                                <div class="table-btn" data-table="9">9</div>
+                            </div>
+
+                            <!-- Right side tables (10-12) -->
+                            <div class="table-group right-wall">
+                                <div class="table-btn" data-table="10">10</div>
+                                <div class="table-btn" data-table="11">11</div>
+                                <div class="table-btn" data-table="12">12</div>
+                            </div>
+
+                            <!-- Center tables (13-16) - Fixed layout, NO TANDIR -->
+                            <div class="center-area">
+                                <div class="table-btn" data-table="13">13</div>
+                                <div class="center-tables-grid">
+                                    <div class="table-btn" data-table="14">14</div>
+                                    <div class="center-circle"></div>
+                                    <div class="table-btn" data-table="16">16</div>
+                                </div>
+                                <div class="table-btn" data-table="15">15</div>
+                            </div>
+                        </div>
+
+                        <!-- B tables near door -->
+                        <div class="layout-marker kapi-marker">KAPI</div>
+                        <div class="outdoor-tables">
+                            <div class="table-btn outdoor-table" data-table="B1">B1</div>
+                            <div class="table-btn outdoor-table" data-table="B2">B2</div>
+                            <div class="table-btn outdoor-table" data-table="B3">B3</div>
+                            <div class="table-btn outdoor-table" data-table="B4">B4</div>
+                        </div>
                     </div>
                 </div>
             </div>
