@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Garson Paneli - Pide Otağı</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="table-map-styles.css">
 </head>
 
 <body>
@@ -24,28 +25,74 @@
 
         <!-- Orders Tab -->
         <div id="tab-orders" class="tab-content active">
-            <!-- Sipariş Oluşturma Bölümü -->
-            <div class="admin-controls">
-                <div class="control-group">
-                    <label for="tableNumber">Masa Numarası</label>
-                    <select id="tableNumber">
-                        <option value="">Masa Seçin</option>
-                        <option value="1">Masa 1</option>
-                        <option value="2">Masa 2</option>
-                        <option value="3">Masa 3</option>
-                        <option value="4">Masa 4</option>
-                        <option value="5">Masa 5</option>
-                        <option value="6">Masa 6</option>
-                        <option value="7">Masa 7</option>
-                        <option value="8">Masa 8</option>
-                        <option value="9">Masa 9</option>
-                        <option value="10">Masa 10</option>
-                        <option value="11">Masa 11</option>
-                        <option value="12">Masa 12</option>
-                        <option value="13">Masa 13</option>
-                        <option value="14">Masa 14</option>
-                        <option value="15">Masa 15</option>
-                    </select>
+            <!-- Masa Seçimi - Visual Map -->
+            <div class="table-map-container">
+                <h2 class="section-title">Masa Seçin</h2>
+                <input type="hidden" id="tableNumber" value="">
+                <div id="selectedTableDisplay" class="selected-table-display">
+                    <span class="placeholder">👆 Lütfen bir masa seçin</span>
+                </div>
+
+                <!-- Restaurant Floor Plan -->
+                <div class="restaurant-layout">
+                    <!-- Top markers -->
+                    <div class="layout-marker kasa-marker">KASA</div>
+                    <div class="layout-marker wc-marker">WC</div>
+
+                    <!-- Main oval area -->
+                    <div class="oval-area">
+                        <!-- Left side tables -->
+                        <div class="table-group left-wall">
+                            <div class="table-card" data-table="1">1</div>
+                            <div class="table-card" data-table="2">2</div>
+                            <div class="table-card" data-table="3">3</div>
+                            <div class="table-card" data-table="4">4</div>
+                            <div class="table-card" data-table="5">5</div>
+                        </div>
+
+                        <!-- Bottom left tables -->
+                        <div class="table-group bottom-left">
+                            <div class="table-card" data-table="6">6</div>
+                        </div>
+
+                        <!-- Bottom center tables -->
+                        <div class="table-group bottom-center">
+                            <div class="table-card" data-table="7">7</div>
+                        </div>
+
+                        <!-- Bottom right tables -->
+                        <div class="table-group bottom-right">
+                            <div class="table-card" data-table="8">8</div>
+                            <div class="table-card" data-table="9">9</div>
+                        </div>
+
+                        <!-- Right side tables -->
+                        <div class="table-group right-wall">
+                            <div class="table-card" data-table="10">10</div>
+                            <div class="table-card" data-table="11">11</div>
+                            <div class="table-card" data-table="12">12</div>
+                        </div>
+
+                        <!-- Center area with tandır -->
+                        <div class="center-area">
+                            <div class="table-card" data-table="13">13</div>
+                            <div class="table-group center-ring">
+                                <div class="table-card" data-table="14">14</div>
+                                <div class="tandir-oven">🔥<br>TANDIR</div>
+                                <div class="table-card" data-table="15">15</div>
+                                <div class="table-card" data-table="16">16</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Outdoor tables -->
+                    <div class="layout-marker kapi-marker">KAPI</div>
+                    <div class="outdoor-tables">
+                        <div class="table-card outdoor-table" data-table="K1">K1</div>
+                        <div class="table-card outdoor-table" data-table="K2">K2</div>
+                        <div class="table-card outdoor-table" data-table="K3">K3</div>
+                        <div class="table-card outdoor-table" data-table="K4">K4</div>
+                    </div>
                 </div>
             </div>
 

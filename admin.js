@@ -35,6 +35,35 @@ let currentOrder = {
 let selectedPortion = 1;
 let pendingItemId = null;
 
+// ============= TABLE SELECTION LOGIC =============
+function initTableSelection() {
+    const tableCards = document.querySelectorAll('.table-card');
+    const tableNumberInput = document.getElementById('tableNumber');
+    const tableDisplay = document.getElementById('selectedTableDisplay');
+
+    tableCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const tableNum = card.dataset.table;
+
+            // Remove selected class from all cards
+            tableCards.forEach(c => c.classList.remove('selected'));
+
+            // Add selected class to clicked card
+            card.classList.add('selected');
+
+            // Update hidden input and display
+            tableNumberInput.value = tableNum;
+            tableDisplay.innerHTML = `<span style="color: var(--primary-gold); font-size: 1.5rem;">📍 Masa ${tableNum}</span>`;
+
+            // Update current order table number
+            currentOrder.tableNumber = tableNum;
+
+            console.log(`Table ${tableNum} selected`);
+        });
+    });
+}
+
+
 // ============= PORTION MODAL LOGIC =============
 function openPortionModal(itemId) {
     const item = allItems.find(i => i.id === itemId);
@@ -596,6 +625,9 @@ function renderMenu() {
 
 // ============= INITIALIZATION =============
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize table selection
+    initTableSelection();
+
     // Initialize menu
     renderMenu();
 
