@@ -107,302 +107,170 @@
     position: relative;
     width: 100%;
     max-width: 500px;
-    margin: 0 auto;
-    /* Very tall to enable vertical spacing */
-    height: 800px;
-}
 
-.layout-marker {
-    position: absolute;
-    font-size: 0.6rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 3px 7px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    z-index: 10;
-}
-
-.kasa-marker {
-    left: 45.5%;
-    top: 1%;
-    color: var(--primary-gold);
-    border: 2px solid var(--primary-gold);
-}
-
-.wc-marker {
-    right: 2%;
-    top: 4%;
-    color: #60a5fa;
-    border: 2px solid #60a5fa;
-}
-
-/* CIRCLE AREA */
-/* Height determined by pixels for stability */
-.oval-area {
-    position: absolute;
-    left: 5%;
-    top: 50px;
-    /* Offset from top */
-    width: 90%;
-    height: 450px;
-    /* Fixed height for circle */
-    border: 3px solid rgba(212, 175, 55, 0.3);
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(212, 175, 55, 0.02), transparent 70%);
-    z-index: 1;
-}
-
-/* INDIVIDUAL TABLE POSITIONING - Exaggerated Curve */
-/* Using pixels/percentages relative to Oval */
-/* Left side (1-6) - Deep curve */
-.table-btn[data-table="1"] {
-    position: absolute;
-    left: 22%;
-    top: 12%;
-}
-
-/* Top-left start */
-.table-btn[data-table="2"] {
-    position: absolute;
-    left: 12%;
-    top: 23%;
-}
-
-/* Curve out */
-.table-btn[data-table="3"] {
-    position: absolute;
-    left: 6%;
-    top: 35%;
-}
-
-/* Deepest point */
-.table-btn[data-table="4"] {
-    position: absolute;
-    left: 6%;
-    top: 48%;
-}
-
-/* Deepest point */
-.table-btn[data-table="5"] {
-    position: absolute;
-    left: 12%;
-    top: 60%;
-}
-
-/* Curve in */
-.table-btn[data-table="6"] {
-    position: absolute;
-    left: 22%;
-    top: 71%;
-}
-
-/* Bottom-left end */
-
-/* Right side (12-7) - Deep curve */
-.table-btn[data-table="12"] {
-    position: absolute;
-    right: 22%;
-    top: 12%;
-}
-
-.table-btn[data-table="11"] {
-    position: absolute;
-    right: 12%;
-    top: 23%;
-}
-
-.table-btn[data-table="10"] {
-    position: absolute;
-    right: 6%;
-    top: 35%;
-}
-
-.table-btn[data-table="9"] {
-    position: absolute;
-    right: 6%;
-    top: 48%;
-}
-
-.table-btn[data-table="8"] {
-    position: absolute;
-    right: 12%;
-    top: 60%;
-}
-
-.table-btn[data-table="7"] {
-    position: absolute;
-    right: 22%;
-    top: 71%;
-}
-
-/* CENTER AREA (13-16) */
-.center-area {
-    position: absolute;
-    left: 50%;
-    top: 42%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    z-index: 5;
-}
-
-.center-tables-grid {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.center-circle {
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    background: #000;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-/* B TABLES - OUTSIDE CIRCLE (Below) */
-/* Oval is 450px tall. Top: >100% of oval */
-.b-tables-row {
-    position: absolute;
-    top: 108%;
-    /* 8% below circle bottom */
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 10px;
-    z-index: 10;
-    width: 100%;
-    justify-content: center;
-}
-
-/* Markers near B tables */
-/* Markers near B tables - HIDDEN */
-.kapi-marker,
-.balkon-marker {
-    display: none;
-}
-
-/* KAMELYA SECTION - MOVED UP CLOSER */
-/* Relative to oval-area parent */
-.kamelya-section {
-    position: absolute;
-    top: 124%;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 15%;
-    width: 100%;
-    justify-content: center;
-    padding-bottom: 20px;
-}
-
-.kamelya-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 8px;
-    border: 2px dashed rgba(100, 181, 246, 0.3);
-    border-radius: 8px;
-    background: rgba(100, 181, 246, 0.02);
-    width: 120px;
-}
-
-.kamelya-label {
-    font-size: 0.55rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
-/* TABLE BUTTONS */
-.table-btn {
-    width: 48px;
-    height: 38px;
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    border: 2px solid var(--card-border);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-light);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    user-select: none;
-    flex-shrink: 0;
-}
-
-.table-btn:hover {
-    transform: scale(1.05);
-    border-color: var(--primary-gold);
-    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
-}
-
-.table-btn.selected {
-    background: var(--gradient-gold);
-    color: var(--primary-dark);
-    border-color: var(--primary-gold);
-    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.6);
-    transform: scale(1.08);
-}
-
-.table-btn.outdoor-table {
-    width: 62px;
-    height: 44px;
-    background: linear-gradient(135deg, rgba(100, 181, 246, 0.2), rgba(66, 165, 245, 0.2));
-    border-color: rgba(100, 181, 246, 0.5);
-    font-size: 1.05rem;
-}
-
-.table-btn.outdoor-table:hover {
-    border-color: #64b5f6;
-    box-shadow: 0 5px 15px rgba(100, 181, 246, 0.4);
-}
-
-.table-btn.outdoor-table.selected {
-    background: linear-gradient(135deg, #64b5f6, #42a5f5);
-    color: white;
-    border-color: #64b5f6;
-}
-
-/* Larger screens */
-@media (min-width: 500px) {
-    .table-btn {
-        width: 58px;
-        height: 46px;
-        font-size: 1.3rem;
+    /* TALLER CONTAINER BUT TIGHTER CONTENT */
+    .restaurant-layout {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+        height: 650px;
+        /* Reduced from 800px */
     }
 
-    .table-btn.outdoor-table {
-        width: 72px;
-        height: 54px;
-        font-size: 1.25rem;
-    }
-}
-
-/* Very small screens */
-@media (max-width: 380px) {
-    .table-btn {
-        width: 42px;
-        height: 34px;
-        font-size: 0.95rem;
+    /* Markers */
+    .layout-marker {
+        position: absolute;
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 3px 7px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        z-index: 10;
     }
 
-    .table-btn.outdoor-table {
-        width: 55px;
-        height: 40px;
-        font-size: 0.9rem;
+    /* ... other styles ... */
+
+    /* B TABLES - MOVED CLOSER UP */
+    /* Circle height is 450px. Top 90% is right below circle */
+    .b-tables-row {
+        position: absolute;
+        top: 90%;
+        /* Moved up from 108% */
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 10;
+        width: 100%;
+        justify-content: center;
     }
 
+    /* Markers near B tables - HIDDEN */
+    .kapi-marker,
+    .balkon-marker {
+        display: none;
+    }
+
+    /* KAMELYA SECTION - MOVED MUCH CLOSER UP */
     .kamelya-section {
-        gap: 5%;
+        position: absolute;
+        top: 108%;
+        /* Moved up from 124% */
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 15%;
+        width: 100%;
+        justify-content: center;
+        padding-bottom: 20px;
     }
-}
+
+    .kamelya-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 8px;
+        border: 2px dashed rgba(100, 181, 246, 0.3);
+        border-radius: 8px;
+        background: rgba(100, 181, 246, 0.02);
+        width: 120px;
+    }
+
+    .kamelya-label {
+        font-size: 0.55rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    /* TABLE BUTTONS */
+    .table-btn {
+        width: 48px;
+        height: 38px;
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 2px solid var(--card-border);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-light);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        user-select: none;
+        flex-shrink: 0;
+    }
+
+    .table-btn:hover {
+        transform: scale(1.05);
+        border-color: var(--primary-gold);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+    }
+
+    .table-btn.selected {
+        background: var(--gradient-gold);
+        color: var(--primary-dark);
+        border-color: var(--primary-gold);
+        box-shadow: 0 8px 20px rgba(212, 175, 55, 0.6);
+        transform: scale(1.08);
+    }
+
+    .table-btn.outdoor-table {
+        width: 62px;
+        height: 44px;
+        background: linear-gradient(135deg, rgba(100, 181, 246, 0.2), rgba(66, 165, 245, 0.2));
+        border-color: rgba(100, 181, 246, 0.5);
+        font-size: 1.05rem;
+    }
+
+    .table-btn.outdoor-table:hover {
+        border-color: #64b5f6;
+        box-shadow: 0 5px 15px rgba(100, 181, 246, 0.4);
+    }
+
+    .table-btn.outdoor-table.selected {
+        background: linear-gradient(135deg, #64b5f6, #42a5f5);
+        color: white;
+        border-color: #64b5f6;
+    }
+
+    /* Larger screens */
+    @media (min-width: 500px) {
+        .table-btn {
+            width: 58px;
+            height: 46px;
+            font-size: 1.3rem;
+        }
+
+        .table-btn.outdoor-table {
+            width: 72px;
+            height: 54px;
+            font-size: 1.25rem;
+        }
+    }
+
+    /* Very small screens */
+    @media (max-width: 380px) {
+        .table-btn {
+            width: 42px;
+            height: 34px;
+            font-size: 0.95rem;
+        }
+
+        .table-btn.outdoor-table {
+            width: 55px;
+            height: 40px;
+            font-size: 0.9rem;
+        }
+
+        .kamelya-section {
+            gap: 5%;
+        }
+    }
