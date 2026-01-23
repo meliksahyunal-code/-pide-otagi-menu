@@ -412,6 +412,7 @@ function displayActiveOrders(orders) {
             <span class="total-label">Toplam:</span>
             <span class="total-amount">${total}₺</span>
           </div>
+          ${getPersonPaymentButtons(order)}
           <div class="order-actions">
             ${getOrderActionButtons(order)}
           </div>
@@ -440,6 +441,47 @@ function getStatusText(status) {
 
 function getStatusClass(status) {
     return `order-status-${status}`;
+}
+
+// Generate per-person payment buttons
+function getPersonPaymentButtons(order) {
+    // Only show for delivered orders (ready to pay)
+    if (order.status !== 'delivered') {
+        return '';
+    }
+
+    // Get unique person numbers from items
+    const personNumbers = [...new Set(order.items.map(item => item.personNumber || 1))].sort((a, b) => a - b);
+
+    // If only one person, don't show individual buttons
+    if (personNumbers.length === 1) {
+        return '';
+    }
+
+    const personColors = ['#667eea', '#f093fb', '#38ef7d', '#f4a261', '#e76f51'];
+
+    let html = '<div style="margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 10px;">';
+    html += '<div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">💰 Kişi Bazlı Ödeme:</div>';
+    html += '<div style="display: flex; flex-wrap: wrap; gap: 8px;">';
+
+    personNumbers.forEach((personNum, index) => {
+        const color = personColors[index % personColors.length];
+        const personItems = order.items.filter(item => (item.personNumber || 1) === personNum);
+        const personTotal = personItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        html += `
+            <button 
+                class="btn btn-sm" 
+                onclick="payForPerson('${order.tableNumber}', ${personNum}, '${order._id}')"
+                style="background: ${color}; color: white; font-size: 0.85rem; padding: 8px 14px;"
+            >
+                ✅ Kişi ${personNum} (${personTotal}₺)
+            </button>
+        `;
+    });
+
+    html += '</div></div>';
+    return html;
 }
 
 function getOrderActionButtons(order) {
@@ -567,6 +609,40 @@ async function payAllTableOrders(tableNumber) {
         }
     } catch (error) {
         console.error('Toplu ödeme hatası:', error);
+        alert(`Hata: ${error.message}`);
+    }
+}
+
+// Pay for specific person at a table
+async function payForPerson(tableNumber, personNumber, orderId) {
+    if (!confirm(`Masa ${tableNumber} - Kişi ${personNumber}'in siparişi ödenmiş olarak işaretlenecek. Onaylıyor musunuz?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/tables/${tableNumber}/pay-person/${personNumber}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Ödeme işlemi başarısız');
+        }
+
+        const result = await response.json();
+        alert(result.message);
+        await loadActiveOrders();
+
+        // Refresh statistics if on that tab
+        const activeTab = document.querySelector('.tab-content.active');
+        if (activeTab && activeTab.id === 'tab-statistics') {
+            loadStatistics();
+        }
+    } catch (error) {
+        console.error('Kişi ödemesi hatası:', error);
         alert(`Hata: ${error.message}`);
     }
 }
