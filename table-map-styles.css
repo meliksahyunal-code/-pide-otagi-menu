@@ -1,4 +1,4 @@
-/* TABLE MAP - FINAL CORRECTED LAYOUT */
+/* TABLE MAP - FINAL CORRECTED LAYOUT v3 */
 
 .table-map-trigger-btn {
     width: 100%;
@@ -55,14 +55,14 @@
     max-width: 500px;
     max-height: 95vh;
     overflow-y: scroll;
-    /* Allow scrolling if needed */
 }
 
 .table-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
+    /* Increased margin */
     padding-bottom: 10px;
     border-bottom: 2px solid var(--card-border);
 }
@@ -108,8 +108,8 @@
     width: 100%;
     max-width: 500px;
     margin: 0 auto;
-    /* Make it taller to fit everything comfortably without overlap */
-    aspect-ratio: 1000 / 1400;
+    /* Very tall to enable vertical spacing */
+    height: 800px;
 }
 
 .layout-marker {
@@ -139,113 +139,121 @@
 }
 
 /* CIRCLE AREA */
-/* Width 90%, Height matches width (circle) */
-/* 90% of 1000 = 900. 900/1400 = 64% */
+/* Height determined by pixels for stability */
 .oval-area {
     position: absolute;
     left: 5%;
-    top: 5%;
+    top: 50px;
+    /* Offset from top */
     width: 90%;
-    height: 64%;
+    height: 450px;
+    /* Fixed height for circle */
     border: 3px solid rgba(212, 175, 55, 0.3);
     border-radius: 50%;
     background: radial-gradient(circle, rgba(212, 175, 55, 0.02), transparent 70%);
     z-index: 1;
 }
 
-/* INDIVIDUAL TABLE POSITIONING */
-/* Left side (1-6) - Arranged in arc inside circle */
+/* INDIVIDUAL TABLE POSITIONING - Exaggerated Curve */
+/* Using pixels/percentages relative to Oval */
+/* Left side (1-6) - Deep curve */
 .table-btn[data-table="1"] {
     position: absolute;
-    left: 18%;
+    left: 22%;
     top: 12%;
 }
 
+/* Top-left start */
 .table-btn[data-table="2"] {
     position: absolute;
-    left: 10%;
-    top: 21%;
+    left: 12%;
+    top: 23%;
 }
 
+/* Curve out */
 .table-btn[data-table="3"] {
     position: absolute;
     left: 6%;
-    top: 32%;
+    top: 35%;
 }
 
+/* Deepest point */
 .table-btn[data-table="4"] {
     position: absolute;
     left: 6%;
-    top: 43%;
+    top: 48%;
 }
 
+/* Deepest point */
 .table-btn[data-table="5"] {
     position: absolute;
-    left: 10%;
-    top: 54%;
+    left: 12%;
+    top: 60%;
 }
 
+/* Curve in */
 .table-btn[data-table="6"] {
     position: absolute;
-    left: 18%;
-    top: 63%;
+    left: 22%;
+    top: 71%;
 }
 
-/* Right side (12-7) - Arranged in arc inside circle */
+/* Bottom-left end */
+
+/* Right side (12-7) - Deep curve */
 .table-btn[data-table="12"] {
     position: absolute;
-    right: 18%;
+    right: 22%;
     top: 12%;
 }
 
 .table-btn[data-table="11"] {
     position: absolute;
-    right: 10%;
-    top: 21%;
+    right: 12%;
+    top: 23%;
 }
 
 .table-btn[data-table="10"] {
     position: absolute;
     right: 6%;
-    top: 32%;
+    top: 35%;
 }
 
 .table-btn[data-table="9"] {
     position: absolute;
     right: 6%;
-    top: 43%;
+    top: 48%;
 }
 
 .table-btn[data-table="8"] {
     position: absolute;
-    right: 10%;
-    top: 54%;
+    right: 12%;
+    top: 60%;
 }
 
 .table-btn[data-table="7"] {
     position: absolute;
-    right: 18%;
-    top: 63%;
+    right: 22%;
+    top: 71%;
 }
 
-/* CENTER AREA (13-16) - Absolute center of circle */
+/* CENTER AREA (13-16) */
 .center-area {
     position: absolute;
     left: 50%;
-    top: 37%;
-    /* Center of circle (5% + 32%) */
+    top: 42%;
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1%;
+    gap: 10px;
     z-index: 5;
 }
 
 .center-tables-grid {
     display: flex;
     align-items: center;
-    gap: 3%;
+    gap: 10px;
 }
 
 .center-circle {
@@ -256,21 +264,27 @@
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* B TABLES - BELOW CIRCLE */
-/* Circle ends at 5+64 = 69%. Put B tables at 72% */
+/* B TABLES - OUTSIDE CIRCLE (Below) */
+/* Oval is 450px tall. Top: >100% of oval */
 .b-tables-row {
     position: absolute;
-    top: 72%;
+    top: 108%;
+    /* 8% below circle bottom */
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 2%;
+    gap: 10px;
     z-index: 10;
+    width: 100%;
+    justify-content: center;
 }
 
+/* Markers near B tables */
 .kapi-marker {
-    left: 42%;
-    top: 80%;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 102%;
+    /* At circle boundary */
     color: #ef4444;
     border: 2px solid #ef4444;
     background: rgba(255, 255, 255, 0.1);
@@ -278,23 +292,27 @@
 }
 
 .balkon-marker {
-    left: 43%;
-    top: 84%;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 123%;
+    /* Below B tables */
     color: var(--text-muted);
     border: 1px solid var(--text-muted);
     font-size: 0.55rem;
 }
 
-/* KAMELYA SECTION - BOTTOM */
+/* KAMELYA SECTION - FAR BOTTOM */
+/* Relative to oval-area parent, needs to go way down */
 .kamelya-section {
     position: absolute;
-    bottom: 1%;
+    top: 135%;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 15%;
-    width: 90%;
+    width: 100%;
     justify-content: center;
+    padding-bottom: 20px;
 }
 
 .kamelya-col {
@@ -306,8 +324,7 @@
     border: 2px dashed rgba(100, 181, 246, 0.3);
     border-radius: 8px;
     background: rgba(100, 181, 246, 0.02);
-    flex: 1;
-    max-width: 42%;
+    width: 120px;
 }
 
 .kamelya-label {
@@ -384,19 +401,6 @@
         height: 54px;
         font-size: 1.25rem;
     }
-
-    .center-circle {
-        width: 30px;
-        height: 30px;
-    }
-
-    .kamelya-label {
-        font-size: 0.6rem;
-    }
-
-    .layout-marker {
-        font-size: 0.65rem;
-    }
 }
 
 /* Very small screens */
@@ -413,17 +417,7 @@
         font-size: 0.9rem;
     }
 
-    .center-circle {
-        width: 22px;
-        height: 22px;
-    }
-
-    .kamelya-label {
-        font-size: 0.5rem;
-    }
-
-    .layout-marker {
-        font-size: 0.55rem;
-        padding: 2px 5px;
+    .kamelya-section {
+        gap: 5%;
     }
 }
