@@ -229,5 +229,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Auto-refresh every 10 seconds
-    setInterval(loadKitchenOrders, 10000);
+    // This also keeps the Render backend awake during kitchen hours
+    setInterval(() => {
+        console.log('🔄 Kitchen: Auto-refreshing orders...');
+        loadKitchenOrders();
+    }, 10000);
 });

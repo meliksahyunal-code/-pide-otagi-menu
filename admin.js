@@ -741,13 +741,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load active orders on initial load
     loadActiveOrders();
 
-    // Auto-refresh active orders every 30 seconds
+    // Auto-refresh active orders every 10 minutes to keep backend awake
+    // This prevents Render free tier from sleeping (sleeps after 15 min of inactivity)
     setInterval(() => {
         const activeTab = document.querySelector('.tab-content.active');
         if (activeTab && activeTab.id === 'tab-active-orders') {
+            console.log('🔄 Auto-refreshing orders to keep backend awake...');
             loadActiveOrders();
         }
-    }, 30000);
+    }, 600000); // 10 minutes = 600,000 milliseconds
 });
 
 // Helper function to show/hide delete button based on selection
