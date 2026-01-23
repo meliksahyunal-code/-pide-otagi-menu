@@ -1,4 +1,4 @@
-/* TABLE MAP - CLEANZED & RESTORED LAYOUT */
+/* TABLE MAP - RESTORED & PIXEL PERFECT LAYOUT */
 
 .table-map-trigger-btn {
     width: 100%;
@@ -61,7 +61,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 2px solid var(--card-border);
 }
@@ -102,14 +102,14 @@
     margin-bottom: 30px;
 }
 
-/* RESTORED SAFE CONTAINER */
+/* LAYOUT CONTAINER - FIXED HEIGHT */
 .restaurant-layout {
     position: relative;
     width: 100%;
     max-width: 500px;
     margin: 0 auto;
-    height: 750px;
-    /* Safe height to prevent squashing */
+    height: 800px;
+    /* Safe height for scrolling */
 }
 
 .layout-marker {
@@ -125,7 +125,8 @@
 }
 
 .kasa-marker {
-    left: 45.5%;
+    left: 50%;
+    transform: translateX(-50%);
     top: 1%;
     color: var(--primary-gold);
     border: 2px solid var(--primary-gold);
@@ -138,11 +139,11 @@
     border: 2px solid #60a5fa;
 }
 
-/* CIRCLE AREA */
+/* OVAL - ABSOLUTE PIXELS */
 .oval-area {
     position: absolute;
     left: 5%;
-    top: 50px;
+    top: 20px;
     width: 90%;
     height: 450px;
     border: 3px solid rgba(212, 175, 55, 0.3);
@@ -152,6 +153,8 @@
 }
 
 /* INDIVIDUAL TABLE POSITIONING - Exaggerated Curve */
+/* Using percentages relative to Oval Height (450px) */
+
 /* Left side (1-6) */
 .table-btn[data-table="1"] {
     position: absolute;
@@ -226,11 +229,11 @@
     top: 71%;
 }
 
-/* CENTER AREA (13-16) */
+/* CENTER AREA */
 .center-area {
     position: absolute;
     left: 50%;
-    top: 42%;
+    top: 50%;
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
@@ -253,11 +256,10 @@
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* B TABLES - BELOW CIRCLE AND CLEAR OF KAMELYA */
+/* B TABLES - ABSOLUTE PIXELS BELOW OVAL */
 .b-tables-row {
     position: absolute;
-    top: 85%;
-    /* ~540px top (below circle) */
+    top: 490px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -267,17 +269,16 @@
     justify-content: center;
 }
 
-/* Markers near B tables - HIDDEN */
+/* MARKS HIDDEN */
 .kapi-marker,
 .balkon-marker {
     display: none;
 }
 
-/* KAMELYA SECTION - CLEAR OF B TABLES */
+/* KAMELYA - ABSOLUTE PIXELS BELOW B */
 .kamelya-section {
     position: absolute;
-    top: 105%;
-    /* ~660px top (clear of B tables) */
+    top: 560px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
