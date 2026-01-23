@@ -1,6 +1,5 @@
-/* ============= VISUAL TABLE MAP - MODAL VERSION ============= */
+/* ============= TABLE MAP - EXACT LAYOUT ============= */
 
-/* Button to open table map */
 .table-map-trigger-btn {
     width: 100%;
     padding: 20px;
@@ -17,8 +16,7 @@
 }
 
 .table-map-trigger-btn:hover {
-    border-color;
-    var(--primary-gold);
+    border-color: var(--primary-gold);
     background: rgba(212, 175, 55, 0.1);
     transform: translateY(-2px);
 }
@@ -27,7 +25,6 @@
     color: var(--text-muted);
 }
 
-/* Modal */
 .table-modal {
     display: none;
     position: fixed;
@@ -65,7 +62,6 @@
     max-height: 95vh;
     width: 100%;
     overflow-y: auto;
-    animation: modalSlideIn 0.3s ease;
 }
 
 .table-modal-header {
@@ -91,10 +87,8 @@
     border-radius: 50%;
     color: white;
     font-size: 2rem;
-    font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
-    line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -116,21 +110,21 @@
 
 .restaurant-layout {
     position: relative;
-    max-width: 900px;
+    max-width: 800px;
     margin: 0 auto;
+    padding-bottom: 280px;
 }
 
-/* Layout Markers */
+/* Markers */
 .layout-marker {
     position: absolute;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
-    padding: 8px 15px;
+    padding: 6px 12px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+    border-radius: 8px;
     z-index: 10;
 }
 
@@ -150,7 +144,7 @@
 }
 
 .kapi-marker {
-    bottom: 280px;
+    bottom: 170px;
     left: 50%;
     transform: translateX(-50%);
     color: var(--accent-red);
@@ -158,48 +152,51 @@
 }
 
 .balkon-marker {
-    bottom: 230px;
+    bottom: 130px;
     left: 50%;
     transform: translateX(-50%);
     color: var(--success);
     border: 1px solid var(--success);
+    font-size: 0.75rem;
 }
 
-/* Oval Area */
+/* Oval */
 .oval-area {
     position: relative;
     width: 100%;
-    aspect-ratio: 1 / 1.1;
+    max-width: 700px;
+    aspect-ratio: 1 / 1;
     border: 3px solid rgba(212, 175, 55, 0.3);
     border-radius: 50%;
-    padding: 80px 60px;
-    margin: 60px 0 40px 0;
-    background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.02) 0%, transparent 70%);
+    margin: 60px auto 40px;
+    background: radial-gradient(ellipse, rgba(212, 175, 55, 0.02) 0%, transparent 70%);
 }
 
-/* Table Groups */
+/* Hide default table groups */
 .table-group {
     position: absolute;
-    display: flex;
-    gap: 12px;
 }
 
-/* Left and Right walls - 6 tables each */
+.left-wall,
+.right-wall {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .left-wall {
     left: -70px;
     top: 50%;
     transform: translateY(-50%);
-    flex-direction: column;
 }
 
 .right-wall {
     right: -70px;
     top: 50%;
     transform: translateY(-50%);
-    flex-direction: column;
 }
 
-/* Center Area - Tables 13-16 */
+/* Center - 13-16 around black circle */
 .center-area {
     position: absolute;
     top: 50%;
@@ -208,213 +205,230 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .center-tables-grid {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .center-circle {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.5);
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: #000;
+    border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* B Tables near KAPI */
+/* B Tables - INSIDE oval bottom, 2x2 grid */
 .b-tables-group {
     position: absolute;
-    bottom: 0px;
+    bottom: 60px;
     left: 50%;
     transform: translateX(-50%);
-    display: flex;
-    gap: 80px;
-    width: 100%;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+    width: 220px;
 }
 
-.b-left,
-.b-right {
+.b-left {
+    grid-column: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
-/* KAMELYA Section */
+.b-left .table-btn:first-child {
+    order: 1;
+    /* B2 on top */
+}
+
+.b-left .table-btn:last-child {
+    order: 2;
+    /* B1 on bottom */
+}
+
+.b-right {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.b-right .table-btn:first-child {
+    order: 1;
+    /* B3 on top */
+}
+
+.b-right .table-btn:last-child {
+    order: 2;
+    /* B4 on bottom */
+}
+
+/* Kamelya Section - OUTSIDE below oval */
 .kamelya-section {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 700px;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
-    gap: 20px;
-    margin-top: 30px;
-    align-items: flex-start;
+    gap: 15px;
+    padding-top: 20px;
 }
 
 .kamelya-group {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.02);
+    gap: 8px;
+    padding: 12px;
     border: 2px dashed rgba(100, 181, 246, 0.3);
-    border-radius: 15px;
+    border-radius: 12px;
+    background: rgba(100, 181, 246, 0.03);
+}
+
+.kamelya-group:nth-child(2) {
+    /* K2 center - has button above and below */
+    flex-direction: column;
 }
 
 .kamelya-label {
-    font-size: 0.85rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-/* Table Buttons - BIGGER FOR MOBILE */
+/* Table Buttons */
 .table-btn {
-    min-width: 90px;
-    min-height: 90px;
+    min-width: 85px;
+    min-height: 85px;
     background: var(--card-bg);
     backdrop-filter: blur(10px);
     border: 3px solid var(--card-border);
-    border-radius: 15px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 700;
     color: var(--text-light);
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
+    transition: all 0.3s ease;
     user-select: none;
 }
 
 .table-btn:hover {
-    transform: scale(1.1);
+    transform: scale(1.08);
     border-color: var(--primary-gold);
-    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
 }
 
 .table-btn.selected {
     background: var(--gradient-gold);
     color: var(--primary-dark);
     border-color: var(--primary-gold);
-    box-shadow: 0 15px 40px rgba(212, 175, 55, 0.6);
-    transform: scale(1.15);
-    animation: tableSelected 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-@keyframes tableSelected {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.25) rotate(5deg);
-    }
-
-    100% {
-        transform: scale(1.15) rotate(0deg);
-    }
+    box-shadow: 0 12px 35px rgba(212, 175, 55, 0.6);
+    transform: scale(1.12);
 }
 
 .table-btn.outdoor-table {
-    background: linear-gradient(135deg, rgba(100, 181, 246, 0.15) 0%, rgba(66, 165, 245, 0.15) 100%);
-    border-color: rgba(100, 181, 246, 0.4);
+    background: linear-gradient(135deg, rgba(100, 181, 246, 0.2) 0%, rgba(66, 165, 245, 0.2) 100%);
+    border-color: rgba(100, 181, 246, 0.5);
+    min-width: 75px;
+    min-height: 75px;
+    font-size: 1.5rem;
 }
 
 .table-btn.outdoor-table:hover {
     border-color: #64b5f6;
-    box-shadow: 0 10px 30px rgba(100, 181, 246, 0.4);
+    box-shadow: 0 8px 25px rgba(100, 181, 246, 0.4);
 }
 
 .table-btn.outdoor-table.selected {
     background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
     color: white;
     border-color: #64b5f6;
-    box-shadow: 0 15px 40px rgba(100, 181, 246, 0.6);
 }
 
-/* Responsive Design for Table Map */
+/* Responsive */
 @media (max-width: 768px) {
     .table-modal-content {
         padding: 15px;
-        max-width: 98vw;
     }
 
     .oval-area {
-        padding: 60px 40px;
-        margin: 50px 0 30px 0;
+        max-width: 90vw;
     }
 
     .table-btn {
-        min-width: 75px;
-        min-height: 75px;
-        font-size: 1.6rem;
+        min-width: 70px;
+        min-height: 70px;
+        font-size: 1.5rem;
+    }
+
+    .table-btn.outdoor-table {
+        min-width: 65px;
+        min-height: 65px;
+        font-size: 1.3rem;
     }
 
     .left-wall {
-        left: -60px;
+        left: -55px;
     }
 
     .right-wall {
-        right: -60px;
-    }
-
-    .center-circle {
-        width: 50px;
-        height: 50px;
+        right: -55px;
     }
 
     .b-tables-group {
-        gap: 60px;
-    }
-
-    .kamelya-section {
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-    }
-
-    .layout-marker {
-        font-size: 0.75rem;
-        padding: 6px 10px;
-    }
-}
-
-@media (max-width: 480px) {
-    .oval-area {
-        padding: 50px 30px;
-    }
-
-    .table-btn {
-        min-width: 65px;
-        min-height: 65px;
-        font-size: 1.4rem;
-    }
-
-    .left-wall,
-    .right-wall {
-        gap: 10px;
-    }
-
-    .left-wall {
-        left: -50px;
-    }
-
-    .right-wall {
-        right: -50px;
+        width: 180px;
+        gap: 8px;
     }
 
     .center-circle {
         width: 40px;
         height: 40px;
     }
+}
+
+@media (max-width: 480px) {
+    .table-btn {
+        min-width: 60px;
+        min-height: 60px;
+        font-size: 1.3rem;
+    }
+
+    .table-btn.outdoor-table {
+        min-width: 55px;
+        min-height: 55px;
+        font-size: 1.1rem;
+    }
+
+    .left-wall {
+        left: -48px;
+        gap: 8px;
+    }
+
+    .right-wall {
+        right: -48px;
+        gap: 8px;
+    }
 
     .b-tables-group {
-        gap: 40px;
+        width: 150px;
+        bottom: 50px;
+    }
+
+    .kamelya-section {
+        gap: 10px;
     }
 }
