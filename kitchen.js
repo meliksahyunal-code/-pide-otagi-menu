@@ -3,6 +3,51 @@
 let currentFilter = 'all';
 let orders = [];
 
+// Helper function to group and display items by person for kitchen
+function generatePersonGroupedItemsForKitchen(items) {
+    // Group by person
+    const byPerson = {};
+    items.forEach(item => {
+        const personNum = item.personNumber || 1;
+        if (!byPerson[personNum]) {
+            byPerson[personNum] = [];
+        }
+        byPerson[personNum].push(item);
+    });
+
+    // If only one person, show simple list
+    if (Object.keys(byPerson).length === 1 && byPerson[1]) {
+        return items.map(item => `
+            <div class="order-item">
+                <span><span class="item-quantity">${item.quantity}x</span> $ {item.name}</span>
+                <span>${item.price * item.quantity}₺</span>
+            </div>
+        `).join('');
+    }
+
+    // Multiple people - show with person badges
+    const personColors = ['#667eea', '#f093fb', '#38ef7d', '#f4a261', '#e76f51'];
+    let html = '';
+    Object.keys(byPerson).sort((a, b) => parseInt(a) - parseInt(b)).forEach((personNum, index) => {
+        const color = personColors[index % personColors.length];
+        const personItems = byPerson[personNum];
+
+        personItems.forEach(item => {
+            html += `
+                <div class="order-item">
+                    <span>
+                        <span style="background: ${color}; color: white; padding: 3px 10px; border-radius: 15px; font-size: 0.85rem; margin-right: 8px; font-weight: 700;">Kişi ${personNum}</span>
+                        <span class="item-quantity">${item.quantity}x</span> ${item.name}
+                    </span>
+                    <span>${item.price * item.quantity}₺</span>
+                </div>
+            `;
+        });
+    });
+
+    return html;
+}
+
 // Load orders from API
 async function loadKitchenOrders() {
     try {
@@ -62,12 +107,7 @@ function displayKitchenOrders() {
             <span class="status-badge">${statusText}</span>
           </div>
           <div class="order-items">
-            ${order.items.map(item => `
-              <div class="order-item">
-                <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
-                <span>${item.price * item.quantity}₺</span>
-              </div>
-            `).join('')}
+            ${generatePersonGroupedItemsForKitchen(order.items)}
           </div>
           <div class="order-total">
             <span class="total-label">Toplam:</span>

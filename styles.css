@@ -241,6 +241,67 @@ body::before {
   box-shadow: 0 5px 20px rgba(212, 175, 55, 0.4);
 }
 
+/* Person Selection */
+.person-selection,
+.portion-selection {
+  margin-bottom: 25px;
+}
+
+.person-label {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--primary-gold);
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.person-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.person-btn {
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: 10px;
+  color: var(--text-light);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+}
+
+.person-btn:hover {
+  border-color: var(--primary-gold);
+  background: rgba(212, 175, 55, 0.1);
+  transform: translateY(-2px);
+}
+
+.person-btn.selected {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.person-btn.add-person-btn {
+  background: rgba(56, 239, 125, 0.1);
+  border-color: rgba(56, 239, 125, 0.3);
+  color: #38ef7d;
+  font-weight: 600;
+}
+
+.person-btn.add-person-btn:hover {
+  background: rgba(56, 239, 125, 0.2);
+  border-color: #38ef7d;
+}
+
 .modal-actions {
   display: flex;
   gap: 15px;

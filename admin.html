@@ -233,13 +233,31 @@
         <div class="modal-content">
             <h3 id="modalTitle">Porsiyon Seçin</h3>
             <p id="modalSubtitle" class="modal-subtitle"></p>
-            <div class="portion-buttons">
-                <button class="portion-btn" data-portion="0.5">0.5</button>
-                <button class="portion-btn selected" data-portion="1">1</button>
-                <button class="portion-btn" data-portion="1.5">1.5</button>
-                <button class="portion-btn" data-portion="2">2</button>
-                <button class="portion-btn" data-portion="2.5">2.5</button>
-                <button class="portion-btn" data-portion="3">3</button>
+
+            <!-- Person Selection -->
+            <div class="person-selection">
+                <label class="person-label">Kim için?</label>
+                <div class="person-buttons" id="personButtons">
+                    <button class="person-btn selected" data-person="1">Kişi 1</button>
+                    <button class="person-btn" data-person="2">Kişi 2</button>
+                    <button class="person-btn" data-person="3">Kişi 3</button>
+                    <button class="person-btn" data-person="4">Kişi 4</button>
+                    <button class="person-btn" data-person="5">Kişi 5</button>
+                    <button class="person-btn add-person-btn" id="addPersonBtn">+ Yeni Kişi</button>
+                </div>
+            </div>
+
+            <!-- Portion Selection -->
+            <div class="portion-selection">
+                <label class="person-label">Porsiyon</label>
+                <div class="portion-buttons">
+                    <button class="portion-btn" data-portion="0.5">0.5</button>
+                    <button class="portion-btn selected" data-portion="1">1</button>
+                    <button class="portion-btn" data-portion="1.5">1.5</button>
+                    <button class="portion-btn" data-portion="2">2</button>
+                    <button class="portion-btn" data-portion="2.5">2.5</button>
+                    <button class="portion-btn" data-portion="3">3</button>
+                </div>
             </div>
             <div class="modal-actions">
                 <button id="confirmPortion" class="btn btn-primary">✓ Ekle</button>

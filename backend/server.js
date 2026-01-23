@@ -183,6 +183,104 @@ app.post('/api/tables/:tableNumber/pay-all', async (req, res) => {
     }
 });
 
+// POST - Belirli bir kişinin siparişlerini ödenmiş olarak işaretle
+app.post('/api/tables/:tableNumber/pay-person/:personNumber', async (req, res) => {
+    try {
+        const { tableNumber, personNumber } = req.params;
+        const personNum = parseInt(personNumber);
+
+        // Find all orders for this table
+        const orders = await Order.find({
+            tableNumber: tableNumber,
+            status: { $nin: ['cancelled', 'paid'] }
+        });
+
+        let modifiedCount = 0;
+        for (const order of orders) {
+            // Check if this order has items for this person
+            const hasPersonItems = order.items.some(item => item.personNumber === personNum);
+
+            if (hasPersonItems) {
+                // Check if all items belong to this person
+                const allItemsForPerson = order.items.every(item =>
+                    !item.personNumber || item.personNumber === personNum
+                );
+
+                if (allItemsForPerson) {
+                    // If all items are for this person, mark entire order as paid
+                    order.status = 'paid';
+                    await order.save();
+                    modifiedCount++;
+                } else {
+                    // Mixed order - need to split (for now, we'll just mark items)
+                    // In a real app, you might want to create separate orders
+                    console.log(`Mixed order ${order._id} - contains items for multiple people`);
+                }
+            }
+        }
+
+        res.json({
+            message: `Masa ${tableNumber} - Kişi ${personNumber} için ${modifiedCount} sipariş ödendi`,
+            modifiedCount: modifiedCount
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET - Masa için kişilere göre sipariş dökümü
+app.get('/api/tables/:tableNumber/breakdown', async (req, res) => {
+    try {
+        const { tableNumber } = req.params;
+
+        const orders = await Order.find({
+            tableNumber: tableNumber,
+            status: { $nin: ['cancelled', 'paid'] }
+        });
+
+        // Group items by person
+        const personBreakdown = {};
+        let totalAmount = 0;
+
+        orders.forEach(order => {
+            order.items.forEach(item => {
+                const personNum = item.personNumber || 1; // Default to Kişi 1
+
+                if (!personBreakdown[personNum]) {
+                    personBreakdown[personNum] = {
+                        personNumber: personNum,
+                        items: [],
+                        total: 0
+                    };
+                }
+
+                const itemTotal = item.price * item.quantity;
+                personBreakdown[personNum].items.push({
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                    total: itemTotal
+                });
+                personBreakdown[personNum].total += itemTotal;
+                totalAmount += itemTotal;
+            });
+        });
+
+        // Convert to array and sort by person number
+        const breakdown = Object.values(personBreakdown).sort((a, b) => a.personNumber - b.personNumber);
+
+        res.json({
+            tableNumber,
+            breakdown,
+            totalAmount,
+            personCount: breakdown.length
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 // GET - Günlük istatistikler
 app.get('/api/statistics/daily', async (req, res) => {
     try {

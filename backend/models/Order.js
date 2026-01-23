@@ -17,6 +17,15 @@ const orderItemSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0.5  // Support half portions
+    },
+    personNumber: {
+        type: Number,
+        required: false,  // Optional for backward compatibility
+        min: 1,
+        validate: {
+            validator: Number.isInteger,
+            message: 'Person number must be an integer'
+        }
     }
 });
 

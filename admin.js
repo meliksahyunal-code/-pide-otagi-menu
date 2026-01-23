@@ -33,6 +33,8 @@ let currentOrder = {
 };
 
 let selectedPortion = 1;
+let selectedPerson = 1;  // Currently selected person number
+let maxPersonNumber = 5;  // Maximum person number shown (can grow)
 let pendingItemId = null;
 
 // ============= TABLE SELECTION LOGIC (MODAL VERSION) =============
@@ -106,6 +108,16 @@ function openPortionModal(itemId) {
 
     // Reset selection to 1
     selectedPortion = 1;
+    selectedPerson = 1;  // Reset to person 1
+
+    // Reset person buttons
+    document.querySelectorAll('.person-btn:not(.add-person-btn)').forEach(btn => {
+        btn.classList.remove('selected');
+        if (btn.dataset.person === '1') {
+            btn.classList.add('selected');
+        }
+    });
+
     document.querySelectorAll('.portion-btn').forEach(btn => {
         const portion = btn.dataset.portion;
 
@@ -135,14 +147,14 @@ function closePortionModal() {
 
 function confirmPortionSelection() {
     if (pendingItemId !== null) {
-        addItemToCurrentOrder(pendingItemId, selectedPortion);
+        addItemToCurrentOrder(pendingItemId, selectedPortion, selectedPerson);
         closePortionModal();
         updateCurrentOrderDisplay();
     }
 }
 
 // ============= ORDER MANAGEMENT =============
-function addItemToCurrentOrder(itemId, quantity) {
+function addItemToCurrentOrder(itemId, quantity, personNumber = 1) {
     const tableNumber = document.getElementById('tableNumber').value;
 
     if (!tableNumber) {
@@ -162,7 +174,8 @@ function addItemToCurrentOrder(itemId, quantity) {
         id: item.id,
         name: item.name,
         price: item.price,
-        quantity: quantity
+        quantity: quantity,
+        personNumber: personNumber  // Add person tracking
     });
 }
 
@@ -176,22 +189,56 @@ function updateCurrentOrderDisplay() {
         return;
     }
 
-    let html = '';
-    let total = 0;
+    // Group items by person
+    const itemsByPerson = {};
+    let grandTotal = 0;
 
     currentOrder.items.forEach(item => {
+        const personNum = item.personNumber || 1;
+        if (!itemsByPerson[personNum]) {
+            itemsByPerson[personNum] = {
+                items: [],
+                total: 0
+            };
+        }
         const itemTotal = item.price * item.quantity;
-        total += itemTotal;
+        itemsByPerson[personNum].items.push({ ...item, itemTotal });
+        itemsByPerson[personNum].total += itemTotal;
+        grandTotal += itemTotal;
+    });
+
+    // Sort by person number and generate HTML
+    const sortedPersons = Object.keys(itemsByPerson).sort((a, b) => parseInt(a) - parseInt(b));
+
+    let html = '';
+    sortedPersons.forEach(personNum => {
+        const personData = itemsByPerson[personNum];
         html += `
-      <div class="order-item">
-        <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
-        <span>${itemTotal}₺</span>
-      </div>
-    `;
+            <div style="margin-bottom: 20px; padding: 15px; background: rgba(102, 126, 234, 0.1); border-left: 4px solid #667eea; border-radius: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-weight: 600; color: #667eea; font-size: 1.1rem;">👤 Kişi ${personNum}</span>
+                    <span style="font-weight: 600; color: var(--primary-gold);">${personData.total}₺</span>
+                </div>
+                <div style="margin-left: 10px;">
+        `;
+
+        personData.items.forEach(item => {
+            html += `
+                <div class="order-item" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
+                    <span>${item.itemTotal}₺</span>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+        `;
     });
 
     container.innerHTML = html;
-    totalContainer.innerHTML = `<div class="order-total"><span class="total-label">Toplam:</span><span class="total-amount">${total}₺</span></div>`;
+    totalContainer.innerHTML = `<div class="order-total"><span class="total-label">TOPLAM:</span><span class="total-amount">${grandTotal}₺</span></div>`;
 }
 
 async function createOrder() {
@@ -276,6 +323,53 @@ async function loadActiveOrders() {
     }
 }
 
+// Helper function to generate person-grouped items HTML
+function generatePersonGroupedItems(items) {
+    // Group by person
+    const byPerson = {};
+    items.forEach(item => {
+        const personNum = item.personNumber || 1;
+        if (!byPerson[personNum]) {
+            byPerson[personNum] = [];
+        }
+        byPerson[personNum].push(item);
+    });
+
+    // If only one person or no person numbers, show simple list
+    if (Object.keys(byPerson).length === 1 && byPerson[1]) {
+        return items.map(item => `
+            <div class="order-item">
+                <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
+                <span>${item.price * item.quantity}₺</span>
+            </div>
+        `).join('');
+    }
+
+    // Multiple people - show grouped
+    const personColors = ['#667eea', '#f093fb', '#38ef7d', '#f4a261', '#e76f51'];
+    let html = '';
+    Object.keys(byPerson).sort((a, b) => parseInt(a) - parseInt(b)).forEach((personNum, index) => {
+        const color = personColors[index % personColors.length];
+        const personItems = byPerson[personNum];
+
+        html += `<div style="margin-bottom: 8px;">`;
+        personItems.forEach(item => {
+            html += `
+                <div class="order-item">
+                    <span>
+                        <span style="background: ${color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-right: 6px; font-weight: 600;">K${personNum}</span>
+                        <span class="item-quantity">${item.quantity}x</span> ${item.name}
+                    </span>
+                    <span>${item.price * item.quantity}₺</span>
+                </div>
+            `;
+        });
+        html += `</div>`;
+    });
+
+    return html;
+}
+
 function displayActiveOrders(orders) {
     const container = document.getElementById('ordersContainer');
 
@@ -312,12 +406,7 @@ function displayActiveOrders(orders) {
             <span class="status-badge">${statusText}</span>
           </div>
           <div class="order-items">
-            ${order.items.map(item => `
-              <div class="order-item">
-                <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
-                <span>${item.price * item.quantity}₺</span>
-              </div>
-            `).join('')}
+            ${generatePersonGroupedItems(order.items)}
           </div>
           <div class="order-total">
             <span class="total-label">Toplam:</span>
@@ -664,6 +753,43 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.add('selected');
             selectedPortion = parseFloat(btn.dataset.portion);
         });
+    });
+
+    // Person button event listeners
+    document.querySelectorAll('.person-btn:not(.add-person-btn)').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.person-btn:not(.add-person-btn)').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedPerson = parseInt(btn.dataset.person);
+        });
+    });
+
+    // Add new person button
+    document.getElementById('addPersonBtn').addEventListener('click', () => {
+        maxPersonNumber++;
+        const personButtonsContainer = document.getElementById('personButtons');
+        const addButton = document.getElementById('addPersonBtn');
+
+        // Create new person button
+        const newButton = document.createElement('button');
+        newButton.className = 'person-btn';
+        newButton.dataset.person = maxPersonNumber;
+        newButton.textContent = `Kişi ${maxPersonNumber}`;
+
+        // Add click listener
+        newButton.addEventListener('click', () => {
+            document.querySelectorAll('.person-btn:not(.add-person-btn)').forEach(b => b.classList.remove('selected'));
+            newButton.classList.add('selected');
+            selectedPerson = maxPersonNumber;
+        });
+
+        // Insert before the add button
+        personButtonsContainer.insertBefore(newButton, addButton);
+
+        // Select the new person
+        document.querySelectorAll('.person-btn:not(.add-person-btn)').forEach(b => b.classList.remove('selected'));
+        newButton.classList.add('selected');
+        selectedPerson = maxPersonNumber;
     });
 
     document.getElementById('confirmPortion').addEventListener('click', confirmPortionSelection);
