@@ -280,32 +280,17 @@
 }
 
 /* Markers near B tables */
-.kapi-marker {
-    left: 50%;
-    transform: translateX(-50%);
-    top: 102%;
-    /* At circle boundary */
-    color: #ef4444;
-    border: 2px solid #ef4444;
-    background: rgba(255, 255, 255, 0.1);
-    font-size: 0.65rem;
-}
-
+/* Markers near B tables - HIDDEN */
+.kapi-marker,
 .balkon-marker {
-    left: 50%;
-    transform: translateX(-50%);
-    top: 123%;
-    /* Below B tables */
-    color: var(--text-muted);
-    border: 1px solid var(--text-muted);
-    font-size: 0.55rem;
+    display: none;
 }
 
-/* KAMELYA SECTION - FAR BOTTOM */
-/* Relative to oval-area parent, needs to go way down */
+/* KAMELYA SECTION - MOVED UP CLOSER */
+/* Relative to oval-area parent */
 .kamelya-section {
     position: absolute;
-    top: 135%;
+    top: 124%;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
