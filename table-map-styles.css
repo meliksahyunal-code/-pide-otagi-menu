@@ -1,4 +1,4 @@
-/* TABLE MAP - BASED ON SVG PROPORTIONS */
+/* TABLE MAP - TABLES INSIDE CIRCLE PERIMETER */
 
 .table-map-trigger-btn {
     width: 100%;
@@ -102,7 +102,6 @@
     margin-bottom: 30px;
 }
 
-/* Container matching SVG viewBox proportions: 1000x1200 */
 .restaurant-layout {
     position: relative;
     width: 100%;
@@ -111,7 +110,6 @@
     aspect-ratio: 1000 / 1200;
 }
 
-/* All elements positioned as absolute within this container */
 .layout-marker {
     position: absolute;
     font-size: 0.6rem;
@@ -124,7 +122,6 @@
     z-index: 10;
 }
 
-/* SVG: x="455" y="55" width="90" height="40" */
 .kasa-marker {
     left: 45.5%;
     top: 5.5%;
@@ -132,7 +129,6 @@
     border: 2px solid var(--primary-gold);
 }
 
-/* SVG: x="870" y="90" width="70" height="40" */
 .wc-marker {
     right: 6%;
     top: 9%;
@@ -140,7 +136,6 @@
     border: 2px solid #60a5fa;
 }
 
-/* SVG: circle cx="500" cy="430" r="380" */
 .oval-area {
     position: absolute;
     left: 12%;
@@ -152,45 +147,44 @@
     background: radial-gradient(circle, rgba(212, 175, 55, 0.02), transparent 70%);
 }
 
-/* LEFT WALL (1-6) - OUTSIDE oval on left */
+/* LEFT WALL (1-6) - INSIDE oval along left curve */
 .left-wall {
     position: absolute;
-    left: 1%;
-    top: 16%;
+    left: 16%;
+    top: 13%;
     display: flex;
     flex-direction: column;
-    gap: 7%;
+    gap: 6%;
 }
 
-/* RIGHT WALL (12-7) - OUTSIDE oval on right */
+/* RIGHT WALL (12-7) - INSIDE oval along right curve */
 .right-wall {
     position: absolute;
-    right: 1%;
-    top: 16%;
+    right: 16%;
+    top: 13%;
     display: flex;
     flex-direction: column;
-    gap: 7%;
+    gap: 6%;
 }
 
-/* CENTER AREA (13-16) - INSIDE oval, centered */
+/* CENTER AREA (13-16) */
 .center-area {
     position: absolute;
     left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    top: 33.5%;
+    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8%;
+    gap: 6%;
 }
 
 .center-tables-grid {
     display: flex;
     align-items: center;
-    gap: 8%;
+    gap: 6%;
 }
 
-/* Black circle in center */
 .center-circle {
     width: 25px;
     height: 25px;
@@ -199,17 +193,16 @@
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* B TABLES - row at bottom inside oval */
+/* B TABLES - in balcony bulge below oval */
 .b-tables-row {
     position: absolute;
-    bottom: 5%;
+    bottom: 31%;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 2%;
 }
 
-/* SVG: Door at bottom */
 .kapi-marker {
     left: 42%;
     bottom: 28%;
@@ -227,7 +220,7 @@
     font-size: 0.55rem;
 }
 
-/* KAMELYA SECTION - bottom outside */
+/* KAMELYA SECTION */
 .kamelya-section {
     position: absolute;
     bottom: 2%;
@@ -262,8 +255,8 @@
 
 /* TABLE BUTTONS */
 .table-btn {
-    width: 55px;
-    height: 42px;
+    width: 50px;
+    height: 40px;
     background: var(--card-bg);
     backdrop-filter: blur(10px);
     border: 2px solid var(--card-border);
@@ -271,7 +264,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--text-light);
     cursor: pointer;
@@ -295,11 +288,11 @@
 }
 
 .table-btn.outdoor-table {
-    width: 68px;
-    height: 50px;
+    width: 65px;
+    height: 48px;
     background: linear-gradient(135deg, rgba(100, 181, 246, 0.2), rgba(66, 165, 245, 0.2));
     border-color: rgba(100, 181, 246, 0.5);
-    font-size: 1.1rem;
+    font-size: 1.05rem;
 }
 
 .table-btn.outdoor-table:hover {
@@ -316,15 +309,15 @@
 /* Larger screens */
 @media (min-width: 500px) {
     .table-btn {
-        width: 65px;
-        height: 50px;
-        font-size: 1.4rem;
+        width: 60px;
+        height: 48px;
+        font-size: 1.3rem;
     }
 
     .table-btn.outdoor-table {
-        width: 80px;
-        height: 60px;
-        font-size: 1.3rem;
+        width: 75px;
+        height: 58px;
+        font-size: 1.25rem;
     }
 
     .center-circle {
@@ -344,20 +337,30 @@
 /* Very small screens */
 @media (max-width: 380px) {
     .table-btn {
-        width: 48px;
-        height: 38px;
-        font-size: 1.05rem;
+        width: 45px;
+        height: 36px;
+        font-size: 1rem;
     }
 
     .table-btn.outdoor-table {
-        width: 60px;
-        height: 45px;
-        font-size: 0.95rem;
+        width: 58px;
+        height: 44px;
+        font-size: 0.92rem;
     }
 
     .center-circle {
         width: 22px;
         height: 22px;
+    }
+
+    .left-wall {
+        left: 14%;
+        gap: 5%;
+    }
+
+    .right-wall {
+        right: 14%;
+        gap: 5%;
     }
 
     .kamelya-label {
