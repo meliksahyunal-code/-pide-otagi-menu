@@ -1,4 +1,4 @@
-/* TABLE MAP - TABLES INSIDE CIRCLE PERIMETER */
+/* TABLE MAP - TABLES FOLLOWING CIRCULAR CURVE */
 
 .table-map-trigger-btn {
     width: 100%;
@@ -147,25 +147,99 @@
     background: radial-gradient(circle, rgba(212, 175, 55, 0.02), transparent 70%);
 }
 
-/* LEFT WALL (1-6) - INSIDE oval along left curve */
-.left-wall {
-    position: absolute;
-    left: 16%;
-    top: 13%;
-    display: flex;
-    flex-direction: column;
-    gap: 6%;
+/* TABLES POSITIONED INDIVIDUALLY ALONG CURVE */
+.left-wall,
+.right-wall {
+    position: relative;
 }
 
-/* RIGHT WALL (12-7) - INSIDE oval along right curve */
-.right-wall {
+/* Left side tables following curve */
+.left-wall .table-btn:nth-child(1) {
     position: absolute;
-    right: 16%;
-    top: 13%;
-    display: flex;
-    flex-direction: column;
-    gap: 6%;
+    left: 24%;
+    top: 13.3%;
 }
+
+/* Table 1 */
+.left-wall .table-btn:nth-child(2) {
+    position: absolute;
+    left: 19.3%;
+    top: 20.4%;
+}
+
+/* Table 2 */
+.left-wall .table-btn:nth-child(3) {
+    position: absolute;
+    left: 16.3%;
+    top: 26.5%;
+}
+
+/* Table 3 */
+.left-wall .table-btn:nth-child(4) {
+    position: absolute;
+    left: 15.2%;
+    top: 32.9%;
+}
+
+/* Table 4 */
+.left-wall .table-btn:nth-child(5) {
+    position: absolute;
+    left: 16.3%;
+    top: 39.4%;
+}
+
+/* Table 5 */
+.left-wall .table-btn:nth-child(6) {
+    position: absolute;
+    left: 19.3%;
+    top: 45.4%;
+}
+
+/* Table 6 */
+
+/* Right side tables following curve */
+.right-wall .table-btn:nth-child(1) {
+    position: absolute;
+    right: 24%;
+    top: 13.3%;
+}
+
+/* Table 12 */
+.right-wall .table-btn:nth-child(2) {
+    position: absolute;
+    right: 19.3%;
+    top: 20.4%;
+}
+
+/* Table 11 */
+.right-wall .table-btn:nth-child(3) {
+    position: absolute;
+    right: 16.3%;
+    top: 26.5%;
+}
+
+/* Table 10 */
+.right-wall .table-btn:nth-child(4) {
+    position: absolute;
+    right: 15.2%;
+    top: 32.9%;
+}
+
+/* Table 9 */
+.right-wall .table-btn:nth-child(5) {
+    position: absolute;
+    right: 16.3%;
+    top: 39.4%;
+}
+
+/* Table 8 */
+.right-wall .table-btn:nth-child(6) {
+    position: absolute;
+    right: 19.3%;
+    top: 45.4%;
+}
+
+/* Table 7 */
 
 /* CENTER AREA (13-16) */
 .center-area {
@@ -193,10 +267,10 @@
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* B TABLES - in balcony bulge below oval */
+/* B TABLES - BELOW circle, not intersecting */
 .b-tables-row {
     position: absolute;
-    bottom: 31%;
+    bottom: 36%;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -351,16 +425,6 @@
     .center-circle {
         width: 22px;
         height: 22px;
-    }
-
-    .left-wall {
-        left: 14%;
-        gap: 5%;
-    }
-
-    .right-wall {
-        right: 14%;
-        gap: 5%;
     }
 
     .kamelya-label {
