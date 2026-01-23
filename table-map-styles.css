@@ -1,4 +1,4 @@
-/* TABLE MAP - INDIVIDUAL TABLE POSITIONING ALONG CURVE */
+/* TABLE MAP - FINAL CORRECTED LAYOUT */
 
 .table-map-trigger-btn {
     width: 100%;
@@ -54,15 +54,16 @@
     width: 95vw;
     max-width: 500px;
     max-height: 95vh;
-    overflow-y: auto;
+    overflow-y: scroll;
+    /* Allow scrolling if needed */
 }
 
 .table-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 12px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
     border-bottom: 2px solid var(--card-border);
 }
 
@@ -96,7 +97,7 @@
 .table-map-container {
     background: var(--card-bg);
     backdrop-filter: blur(10px);
-    padding: 20px;
+    padding: 15px;
     border-radius: 20px;
     border: 1px solid var(--card-border);
     margin-bottom: 30px;
@@ -107,7 +108,8 @@
     width: 100%;
     max-width: 500px;
     margin: 0 auto;
-    aspect-ratio: 1000 / 1200;
+    /* Make it taller to fit everything comfortably without overlap */
+    aspect-ratio: 1000 / 1400;
 }
 
 .layout-marker {
@@ -124,109 +126,126 @@
 
 .kasa-marker {
     left: 45.5%;
-    top: 3%;
+    top: 1%;
     color: var(--primary-gold);
     border: 2px solid var(--primary-gold);
 }
 
 .wc-marker {
-    right: 4%;
-    top: 6%;
+    right: 2%;
+    top: 4%;
     color: #60a5fa;
     border: 2px solid #60a5fa;
 }
 
-/* LARGE CIRCLE */
+/* CIRCLE AREA */
+/* Width 90%, Height matches width (circle) */
+/* 90% of 1000 = 900. 900/1400 = 64% */
 .oval-area {
     position: absolute;
-    left: 7.5%;
-    top: 8%;
-    width: 85%;
-    height: 55%;
+    left: 5%;
+    top: 5%;
+    width: 90%;
+    height: 64%;
     border: 3px solid rgba(212, 175, 55, 0.3);
     border-radius: 50%;
     background: radial-gradient(circle, rgba(212, 175, 55, 0.02), transparent 70%);
+    z-index: 1;
 }
 
-/* INDIVIDUAL TABLE POSITIONING - Following circular arc */
-/* Left side tables (1-6) */
-.oval-area .table-btn[data-table="1"] {
+/* INDIVIDUAL TABLE POSITIONING */
+/* Left side (1-6) - Arranged in arc inside circle */
+.table-btn[data-table="1"] {
+    position: absolute;
     left: 18%;
     top: 12%;
 }
 
-.oval-area .table-btn[data-table="2"] {
-    left: 11%;
-    top: 22%;
+.table-btn[data-table="2"] {
+    position: absolute;
+    left: 10%;
+    top: 21%;
 }
 
-.oval-area .table-btn[data-table="3"] {
-    left: 7%;
-    top: 34%;
+.table-btn[data-table="3"] {
+    position: absolute;
+    left: 6%;
+    top: 32%;
 }
 
-.oval-area .table-btn[data-table="4"] {
-    left: 7%;
-    top: 46%;
+.table-btn[data-table="4"] {
+    position: absolute;
+    left: 6%;
+    top: 43%;
 }
 
-.oval-area .table-btn[data-table="5"] {
-    left: 11%;
-    top: 58%;
+.table-btn[data-table="5"] {
+    position: absolute;
+    left: 10%;
+    top: 54%;
 }
 
-.oval-area .table-btn[data-table="6"] {
+.table-btn[data-table="6"] {
+    position: absolute;
     left: 18%;
-    top: 68%;
+    top: 63%;
 }
 
-/* Right side tables (12-7) */
-.oval-area .table-btn[data-table="12"] {
+/* Right side (12-7) - Arranged in arc inside circle */
+.table-btn[data-table="12"] {
+    position: absolute;
     right: 18%;
     top: 12%;
 }
 
-.oval-area .table-btn[data-table="11"] {
-    right: 11%;
-    top: 22%;
+.table-btn[data-table="11"] {
+    position: absolute;
+    right: 10%;
+    top: 21%;
 }
 
-.oval-area .table-btn[data-table="10"] {
-    right: 7%;
-    top: 34%;
+.table-btn[data-table="10"] {
+    position: absolute;
+    right: 6%;
+    top: 32%;
 }
 
-.oval-area .table-btn[data-table="9"] {
-    right: 7%;
-    top: 46%;
+.table-btn[data-table="9"] {
+    position: absolute;
+    right: 6%;
+    top: 43%;
 }
 
-.oval-area .table-btn[data-table="8"] {
-    right: 11%;
-    top: 58%;
+.table-btn[data-table="8"] {
+    position: absolute;
+    right: 10%;
+    top: 54%;
 }
 
-.oval-area .table-btn[data-table="7"] {
+.table-btn[data-table="7"] {
+    position: absolute;
     right: 18%;
-    top: 68%;
+    top: 63%;
 }
 
-/* CENTER AREA (13-16) */
+/* CENTER AREA (13-16) - Absolute center of circle */
 .center-area {
     position: absolute;
     left: 50%;
-    top: 28%;
-    transform: translateX(-50%);
+    top: 37%;
+    /* Center of circle (5% + 32%) */
+    transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5%;
+    gap: 1%;
+    z-index: 5;
 }
 
 .center-tables-grid {
     display: flex;
     align-items: center;
-    gap: 5%;
+    gap: 3%;
 }
 
 .center-circle {
@@ -237,20 +256,21 @@
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* B TABLES - BELOW circle at bottom */
+/* B TABLES - BELOW CIRCLE */
+/* Circle ends at 5+64 = 69%. Put B tables at 72% */
 .b-tables-row {
     position: absolute;
-    bottom: 20%;
+    top: 72%;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 2%;
-    z-index: 5;
+    z-index: 10;
 }
 
 .kapi-marker {
     left: 42%;
-    bottom: 16%;
+    top: 80%;
     color: #ef4444;
     border: 2px solid #ef4444;
     background: rgba(255, 255, 255, 0.1);
@@ -259,21 +279,21 @@
 
 .balkon-marker {
     left: 43%;
-    bottom: 13%;
+    top: 84%;
     color: var(--text-muted);
     border: 1px solid var(--text-muted);
     font-size: 0.55rem;
 }
 
-/* KAMELYA SECTION */
+/* KAMELYA SECTION - BOTTOM */
 .kamelya-section {
     position: absolute;
-    bottom: 2%;
+    bottom: 1%;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 22%;
-    width: 88%;
+    gap: 15%;
+    width: 90%;
     justify-content: center;
 }
 
@@ -300,8 +320,8 @@
 
 /* TABLE BUTTONS */
 .table-btn {
-    width: 50px;
-    height: 40px;
+    width: 48px;
+    height: 38px;
     background: var(--card-bg);
     backdrop-filter: blur(10px);
     border: 2px solid var(--card-border);
@@ -333,8 +353,8 @@
 }
 
 .table-btn.outdoor-table {
-    width: 65px;
-    height: 48px;
+    width: 62px;
+    height: 44px;
     background: linear-gradient(135deg, rgba(100, 181, 246, 0.2), rgba(66, 165, 245, 0.2));
     border-color: rgba(100, 181, 246, 0.5);
     font-size: 1.05rem;
@@ -354,14 +374,14 @@
 /* Larger screens */
 @media (min-width: 500px) {
     .table-btn {
-        width: 60px;
-        height: 48px;
+        width: 58px;
+        height: 46px;
         font-size: 1.3rem;
     }
 
     .table-btn.outdoor-table {
-        width: 75px;
-        height: 58px;
+        width: 72px;
+        height: 54px;
         font-size: 1.25rem;
     }
 
@@ -382,15 +402,15 @@
 /* Very small screens */
 @media (max-width: 380px) {
     .table-btn {
-        width: 45px;
-        height: 36px;
-        font-size: 1rem;
+        width: 42px;
+        height: 34px;
+        font-size: 0.95rem;
     }
 
     .table-btn.outdoor-table {
-        width: 58px;
-        height: 44px;
-        font-size: 0.92rem;
+        width: 55px;
+        height: 40px;
+        font-size: 0.9rem;
     }
 
     .center-circle {
