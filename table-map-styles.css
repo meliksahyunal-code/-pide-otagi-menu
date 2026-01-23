@@ -1,4 +1,4 @@
-/* TABLE MAP - RESPONSIVE SCALING FIX */
+/* TABLE MAP - BASED ON SVG PROPORTIONS */
 
 .table-map-trigger-btn {
     width: 100%;
@@ -52,8 +52,8 @@
     border: 2px solid var(--primary-gold);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
     width: 95vw;
-    height: 95vh;
-    max-width: 600px;
+    max-width: 500px;
+    max-height: 95vh;
     overflow-y: auto;
 }
 
@@ -102,138 +102,140 @@
     margin-bottom: 30px;
 }
 
+/* Container matching SVG viewBox proportions: 1000x1200 */
 .restaurant-layout {
     position: relative;
     width: 100%;
-    max-width: 100%;
-    /* Use aspect ratio instead of fixed height */
-    padding-bottom: 180%;
+    max-width: 500px;
+    margin: 0 auto;
+    aspect-ratio: 1000 / 1200;
 }
 
-/* Markers */
+/* All elements positioned as absolute within this container */
 .layout-marker {
     position: absolute;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 4px 8px;
+    padding: 3px 7px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     z-index: 10;
 }
 
+/* SVG: x="455" y="55" width="90" height="40" */
 .kasa-marker {
-    top: 2%;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 45.5%;
+    top: 5.5%;
     color: var(--primary-gold);
     border: 2px solid var(--primary-gold);
 }
 
+/* SVG: x="870" y="90" width="70" height="40" */
 .wc-marker {
-    top: 3%;
-    right: 3%;
+    right: 6%;
+    top: 9%;
     color: #60a5fa;
     border: 2px solid #60a5fa;
 }
 
-.kapi-marker {
-    bottom: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #ef4444;
-    border: 2px solid #ef4444;
-    background: rgba(255, 255, 255, 0.1);
-    font-size: 0.7rem;
-}
-
-.balkon-marker {
-    bottom: 16%;
-    left: 50%;
-    transform: translateX(-50%);
-    color: var(--text-muted);
-    border: 1px solid var(--text-muted);
-    font-size: 0.6rem;
-}
-
-/* Oval area */
+/* SVG: circle cx="500" cy="430" r="380" */
 .oval-area {
     position: absolute;
-    top: 5%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 92%;
-    height: 50%;
+    left: 12%;
+    top: 4.2%;
+    width: 76%;
+    height: 63.3%;
     border: 3px solid rgba(212, 175, 55, 0.3);
     border-radius: 50%;
     background: radial-gradient(circle, rgba(212, 175, 55, 0.02), transparent 70%);
 }
 
-/* Table positioning */
-.table-group {
-    position: absolute;
-}
-
+/* LEFT WALL (1-6) - OUTSIDE oval on left */
 .left-wall {
-    left: -12%;
-    top: 20%;
+    position: absolute;
+    left: 1%;
+    top: 16%;
     display: flex;
     flex-direction: column;
-    gap: 1.5%;
+    gap: 7%;
 }
 
+/* RIGHT WALL (12-7) - OUTSIDE oval on right */
 .right-wall {
-    right: -12%;
-    top: 20%;
+    position: absolute;
+    right: 1%;
+    top: 16%;
     display: flex;
     flex-direction: column;
-    gap: 1.5%;
+    gap: 7%;
 }
 
+/* CENTER AREA (13-16) - INSIDE oval, centered */
 .center-area {
-    top: 50%;
+    position: absolute;
     left: 50%;
+    top: 50%;
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5%;
+    gap: 8%;
 }
 
 .center-tables-grid {
     display: flex;
     align-items: center;
-    gap: 1.5%;
+    gap: 8%;
 }
 
+/* Black circle in center */
 .center-circle {
-    width: 30px;
-    height: 30px;
+    width: 25px;
+    height: 25px;
     border-radius: 50%;
     background: #000;
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* B tables row */
+/* B TABLES - row at bottom inside oval */
 .b-tables-row {
     position: absolute;
-    bottom: 6%;
+    bottom: 5%;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 2%;
 }
 
-/* Kamelya section */
+/* SVG: Door at bottom */
+.kapi-marker {
+    left: 42%;
+    bottom: 28%;
+    color: #ef4444;
+    border: 2px solid #ef4444;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 0.65rem;
+}
+
+.balkon-marker {
+    left: 43%;
+    bottom: 24.5%;
+    color: var(--text-muted);
+    border: 1px solid var(--text-muted);
+    font-size: 0.55rem;
+}
+
+/* KAMELYA SECTION - bottom outside */
 .kamelya-section {
     position: absolute;
-    bottom: 4%;
+    bottom: 2%;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 20%;
-    width: 90%;
+    gap: 22%;
+    width: 88%;
     justify-content: center;
 }
 
@@ -241,35 +243,35 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 10px;
+    gap: 6px;
+    padding: 8px;
     border: 2px dashed rgba(100, 181, 246, 0.3);
-    border-radius: 10px;
+    border-radius: 8px;
     background: rgba(100, 181, 246, 0.02);
     flex: 1;
-    max-width: 45%;
+    max-width: 42%;
 }
 
 .kamelya-label {
-    font-size: 0.6rem;
+    font-size: 0.55rem;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
     white-space: nowrap;
 }
 
-/* Table buttons - responsive sizing */
+/* TABLE BUTTONS */
 .table-btn {
-    width: 60px;
-    height: 48px;
+    width: 55px;
+    height: 42px;
     background: var(--card-bg);
     backdrop-filter: blur(10px);
     border: 2px solid var(--card-border);
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--text-light);
     cursor: pointer;
@@ -293,11 +295,11 @@
 }
 
 .table-btn.outdoor-table {
-    width: 70px;
-    height: 55px;
+    width: 68px;
+    height: 50px;
     background: linear-gradient(135deg, rgba(100, 181, 246, 0.2), rgba(66, 165, 245, 0.2));
     border-color: rgba(100, 181, 246, 0.5);
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }
 
 .table-btn.outdoor-table:hover {
@@ -312,50 +314,58 @@
 }
 
 /* Larger screens */
-@media (min-width: 600px) {
+@media (min-width: 500px) {
     .table-btn {
-        width: 70px;
-        height: 56px;
-        font-size: 1.5rem;
-    }
-
-    .table-btn.outdoor-table {
-        width: 85px;
-        height: 65px;
+        width: 65px;
+        height: 50px;
         font-size: 1.4rem;
     }
 
+    .table-btn.outdoor-table {
+        width: 80px;
+        height: 60px;
+        font-size: 1.3rem;
+    }
+
     .center-circle {
-        width: 40px;
-        height: 40px;
+        width: 30px;
+        height: 30px;
+    }
+
+    .kamelya-label {
+        font-size: 0.6rem;
+    }
+
+    .layout-marker {
+        font-size: 0.65rem;
     }
 }
 
 /* Very small screens */
-@media (max-width: 400px) {
+@media (max-width: 380px) {
     .table-btn {
-        width: 52px;
-        height: 42px;
-        font-size: 1.1rem;
+        width: 48px;
+        height: 38px;
+        font-size: 1.05rem;
     }
 
     .table-btn.outdoor-table {
-        width: 62px;
-        height: 48px;
-        font-size: 1rem;
+        width: 60px;
+        height: 45px;
+        font-size: 0.95rem;
     }
 
     .center-circle {
-        width: 25px;
-        height: 25px;
+        width: 22px;
+        height: 22px;
     }
 
     .kamelya-label {
-        font-size: 0.55rem;
+        font-size: 0.5rem;
     }
 
     .layout-marker {
-        font-size: 0.6rem;
-        padding: 3px 6px;
+        font-size: 0.55rem;
+        padding: 2px 5px;
     }
 }
