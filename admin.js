@@ -155,6 +155,14 @@ async function createOrder() {
         return;
     }
 
+    // Get the button and show loading state
+    const saveButton = document.getElementById('createOrderBtn');
+    const originalButtonText = saveButton.textContent;
+    saveButton.textContent = '⏳ Kaydediliyor...';
+    saveButton.disabled = true;
+    saveButton.style.opacity = '0.6';
+    saveButton.style.cursor = 'wait';
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/orders`, {
             method: 'POST',
@@ -192,6 +200,12 @@ async function createOrder() {
     } catch (error) {
         console.error('Sipariş oluşturma hatası:', error);
         alert(`Hata: ${error.message}`);
+    } finally {
+        // Reset button state
+        saveButton.textContent = originalButtonText;
+        saveButton.disabled = false;
+        saveButton.style.opacity = '1';
+        saveButton.style.cursor = 'pointer';
     }
 }
 
