@@ -1,4 +1,4 @@
-/* SVG-BASED EXACT LAYOUT */
+/* FIXED TABLE MAP LAYOUT */
 
 .table-map-trigger-btn {
     width: 100%;
@@ -51,8 +51,8 @@
     border-radius: 25px;
     border: 2px solid var(--primary-gold);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-    max-width: 95vw;
-    max-height: 95vh;
+    max-width: 90vw;
+    max-height: 90vh;
     overflow-y: auto;
 }
 
@@ -102,26 +102,27 @@
 
 .restaurant-layout {
     position: relative;
-    max-width: 700px;
+    width: 100%;
+    max-width: 600px;
+    height: 900px;
     margin: 0 auto;
-    padding-bottom: 320px;
 }
 
 /* Markers */
 .layout-marker {
     position: absolute;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
-    padding: 6px 12px;
-    background: rgba(255, 255, 255, 0.05);
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     z-index: 10;
 }
 
 .kasa-marker {
-    top: 8px;
+    top: 5px;
     left: 50%;
     transform: translateX(-50%);
     color: var(--primary-gold);
@@ -129,137 +130,130 @@
 }
 
 .wc-marker {
-    top: 12px;
-    right: 15px;
+    top: 10px;
+    right: 10px;
     color: #60a5fa;
     border: 2px solid #60a5fa;
 }
 
 .kapi-marker {
-    bottom: 210px;
+    bottom: 300px;
     left: 50%;
-    transform: translate X(-50%);
+    transform: translateX(-50%);
     color: #ef4444;
     border: 2px solid #ef4444;
-    background: rgba(255, 255, 255, 0.95);
-    font-weight: 800;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .balkon-marker {
-    bottom: 165px;
+    bottom: 270px;
     left: 50%;
     transform: translateX(-50%);
     color: var(--text-muted);
     border: 1px solid var(--text-muted);
-    font-size: 0.7rem;
+    font-size: 0.65rem;
 }
 
-/* Oval - matches SVG circle + bulge */
+/* Oval area */
 .oval-area {
-    position: relative;
-    width: 100%;
-    max-width: 680px;
-    aspect-ratio: 1 / 1.15;
-    margin: 50px auto 0;
-    border: 4px solid rgba(212, 175, 55, 0.3);
-    border-radius: 50% 50% 45% 45%;
-    background: radial-gradient(ellipse at center, rgba(212, 175, 55, 0.02), transparent 70%);
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 550px;
+    height: 550px;
+    border: 3px solid rgba(212, 175, 55, 0.3);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.02), transparent 70%);
 }
 
-/* Table groups */
+/* Table positioning */
 .table-group {
     position: absolute;
+}
+
+.left-wall {
+    left: -65px;
+    top: 100px;
     display: flex;
     flex-direction: column;
-    gap: 9px;
+    gap: 8px;
 }
 
-/* LEFT wall: 1-6 following curve */
-.left-wall {
-    left: -72px;
-    top: 23%;
-    transform: translateY(-20%);
-}
-
-/* RIGHT wall: 12-7 following curve */
 .right-wall {
-    right: -72px;
-    top: 23%;
-    transform: translateY(-20%);
+    right: -65px;
+    top: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-/* Center 13-16 */
 .center-area {
-    position: absolute;
-    top: 48%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 9px;
+    gap: 8px;
 }
 
 .center-tables-grid {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .center-circle {
-    width: 45px;
-    height: 45px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: #000;
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-/* B tables - SINGLE ROW of 4 */
+/* B tables row */
 .b-tables-row {
     position: absolute;
-    bottom: 18px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 12px;
+    gap: 10px;
 }
 
-/* Kamelya section - 2 columns */
+/* Kamelya section */
 .kamelya-section {
     position: absolute;
-    bottom: -280px;
+    bottom: -250px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 140px;
-    width: 100%;
-    max-width: 600px;
-    justify-content: center;
+    gap: 120px;
 }
 
 .kamelya-col {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    padding: 15px;
+    gap: 10px;
+    padding: 12px;
     border: 2px dashed rgba(100, 181, 246, 0.3);
     border-radius: 12px;
     background: rgba(100, 181, 246, 0.02);
 }
 
 .kamelya-label {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 1px;
 }
 
 /* Table buttons */
 .table-btn {
-    width: 82px;
-    height: 62px;
+    width: 75px;
+    height: 60px;
     background: var(--card-bg);
     backdrop-filter: blur(10px);
     border: 3px solid var(--card-border);
@@ -267,7 +261,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.7rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: var(--text-light);
     cursor: pointer;
@@ -290,11 +284,10 @@
 }
 
 .table-btn.outdoor-table {
-    width: 100px;
-    height: 72px;
+    width: 95px;
+    height: 68px;
     background: linear-gradient(135deg, rgba(100, 181, 246, 0.2), rgba(66, 165, 245, 0.2));
     border-color: rgba(100, 181, 246, 0.5);
-    font-size: 1.6rem;
 }
 
 .table-btn.outdoor-table:hover {
@@ -311,63 +304,73 @@
 /* Responsive */
 @media (max-width: 768px) {
     .restaurant-layout {
-        max-width: 90vw;
-        padding-bottom: 300px;
+        max-width: 95vw;
+        height: 800px;
+    }
+
+    .oval-area {
+        width: 480px;
+        height: 480px;
     }
 
     .table-btn {
-        width: 68px;
+        width: 65px;
         height: 52px;
         font-size: 1.4rem;
     }
 
     .table-btn.outdoor-table {
-        width: 85px;
-        height: 62px;
+        width: 82px;
+        height: 60px;
+    }
+
+    .left-wall,
+    .right-wall {
+        gap: 7px;
     }
 
     .left-wall {
-        left: -58px;
+        left: -55px;
     }
 
     .right-wall {
-        right: -58px;
-    }
-
-    .b-tables-row {
-        gap: 10px;
+        right: -55px;
     }
 
     .kamelya-section {
-        gap: 100px;
-    }
-
-    .center-circle {
-        width: 38px;
-        height: 38px;
+        gap: 90px;
     }
 }
 
 @media (max-width: 480px) {
+    .restaurant-layout {
+        height: 700px;
+    }
+
+    .oval-area {
+        width: 400px;
+        height: 400px;
+    }
+
     .table-btn {
-        width: 58px;
+        width: 55px;
         height: 45px;
         font-size: 1.2rem;
     }
 
     .table-btn.outdoor-table {
-        width: 72px;
-        height: 54px;
+        width: 70px;
+        height: 52px;
     }
 
     .left-wall {
-        left: -50px;
-        gap: 7px;
+        left: -48px;
+        gap: 6px;
     }
 
     .right-wall {
-        right: -50px;
-        gap: 7px;
+        right: -48px;
+        gap: 6px;
     }
 
     .b-tables-row {
@@ -375,6 +378,7 @@
     }
 
     .kamelya-section {
-        gap: 70px;
+        gap: 60px;
+        bottom: -220px;
     }
 }
