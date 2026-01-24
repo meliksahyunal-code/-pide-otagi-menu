@@ -5,6 +5,8 @@
 let currentTableNumber = null;
 let currentTableData = null;
 let selectedItems = new Set(); // Stores unique item identifiers "orderId-itemIndex"
+let unpaidTables = new Set(); // Track tables with unpaid orders
+let currentView = 'list'; // 'list' or 'map'
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,6 +24,58 @@ function setupEventListeners() {
 
     document.getElementById('paySelectedBtn').addEventListener('click', paySelectedItems);
     document.getElementById('payAllTableBtn').addEventListener('click', payAllTable);
+
+    // View toggle buttons
+    document.getElementById('listViewBtn').addEventListener('click', () => switchView('list'));
+    document.getElementById('mapViewBtn').addEventListener('click', () => switchView('map'));
+
+    // Refresh button
+    document.getElementById('refreshTablesBtn').addEventListener('click', () => {
+        loadTables();
+    });
+}
+
+function switchView(view) {
+    currentView = view;
+
+    const listView = document.getElementById('tableListContainer');
+    const mapView = document.getElementById('tableMapContainer');
+    const listBtn = document.getElementById('listViewBtn');
+    const mapBtn = document.getElementById('mapViewBtn');
+
+    if (view === 'list') {
+        listView.style.display = 'grid';
+        mapView.style.display = 'none';
+        listBtn.classList.add('active');
+        mapBtn.classList.remove('active');
+    } else {
+        listView.style.display = 'none';
+        mapView.style.display = 'block';
+        mapBtn.classList.add('active');
+        listBtn.classList.remove('active');
+
+        // Update map colors when switching to map view
+        updateMapColors();
+    }
+}
+
+function updateMapColors() {
+    // Reset all table buttons first
+    document.querySelectorAll('#tableMapContainer .table-btn').forEach(btn => {
+        btn.classList.remove('has-unpaid');
+        btn.style.pointerEvents = 'none'; // Disable by default
+        btn.onclick = null;
+    });
+
+    // Color and enable tables with unpaid orders
+    unpaidTables.forEach(tableNum => {
+        const tableBtn = document.querySelector(`#tableMapContainer .table-btn[data-table="${tableNum}"]`);
+        if (tableBtn) {
+            tableBtn.classList.add('has-unpaid');
+            tableBtn.style.pointerEvents = 'auto';
+            tableBtn.onclick = () => selectTable(tableNum);
+        }
+    });
 }
 
 // Load all tables with unpaid orders
@@ -30,12 +84,14 @@ async function loadTables() {
         const response = await fetch(`${API_BASE_URL}/api/orders`);
         const orders = await response.json();
 
-        // Get  unique tables with delivered/partially_paid status
+        // Get unique tables with delivered/partially_paid status
         const tablesMap = new Map();
+        unpaidTables.clear(); // Clear the set
 
         orders.forEach(order => {
             if (order.status === 'delivered' || order.status === 'partially_paid') {
                 const tableNum = order.tableNumber;
+                unpaidTables.add(tableNum); // Track table number
 
                 if (!tablesMap.has(tableNum)) {
                     tablesMap.set(tableNum, {
@@ -57,6 +113,11 @@ async function loadTables() {
         });
 
         displayTables(Array.from(tablesMap.values()));
+
+        // Update map if currently in map view
+        if (currentView === 'map') {
+            updateMapColors();
+        }
     } catch (error) {
         console.error('Masalar yüklenirken hata:', error);
     }

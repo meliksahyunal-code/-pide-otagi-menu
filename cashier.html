@@ -7,6 +7,7 @@
     <title>Kasa Paneli - Pide Otağı</title>
     <link rel="stylesheet" href="styles.css?v=3">
     <link rel="stylesheet" href="cashier-styles.css?v=1">
+    <link rel="stylesheet" href="table-map-styles.css?v=2">
 </head>
 
 <body>
@@ -29,9 +30,88 @@
 
         <!-- Table List View -->
         <div id="tab-tables" class="tab-content active">
-            <h2 class="section-title">Ödeme Bekleyen Masalar</h2>
+            <div class="cashier-controls">
+                <h2 class="section-title">Ödeme Bekleyen Masalar</h2>
+                <div class="view-controls">
+                    <button id="refreshTablesBtn" class="btn btn-secondary btn-sm" title="Yenile">
+                        🔄 Yenile
+                    </button>
+                    <div class="view-toggle">
+                        <button id="listViewBtn" class="view-btn active">📋 Liste</button>
+                        <button id="mapViewBtn" class="view-btn">🗺️ Harita</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List View -->
             <div id="tableListContainer" class="table-list">
                 <!-- Dynamically populated tables -->
+            </div>
+
+            <!-- Map View (Hidden by default) -->
+            <div id="tableMapContainer" class="table-map-view" style="display: none;">
+                <!-- Restaurant Floor Plan -->
+                <div class="restaurant-layout">
+                    <!-- Top markers -->
+                    <div class="layout-marker kasa-marker">KASA</div>
+                    <div class="layout-marker wc-marker">WC</div>
+
+                    <!-- Main oval area -->
+                    <div class="oval-area">
+                        <!-- Left side tables (1-6) -->
+                        <div class="table-btn" data-table="1" style="position:absolute">1</div>
+                        <div class="table-btn" data-table="2" style="position:absolute">2</div>
+                        <div class="table-btn" data-table="3" style="position:absolute">3</div>
+                        <div class="table-btn" data-table="4" style="position:absolute">4</div>
+                        <div class="table-btn" data-table="5" style="position:absolute">5</div>
+                        <div class="table-btn" data-table="6" style="position:absolute">6</div>
+
+                        <!-- Right side tables (12-7) -->
+                        <div class="table-btn" data-table="12" style="position:absolute">12</div>
+                        <div class="table-btn" data-table="11" style="position:absolute">11</div>
+                        <div class="table-btn" data-table="10" style="position:absolute">10</div>
+                        <div class="table-btn" data-table="9" style="position:absolute">9</div>
+                        <div class="table-btn" data-table="8" style="position:absolute">8</div>
+                        <div class="table-btn" data-table="7" style="position:absolute">7</div>
+
+                        <!-- Center tables (13-16) -->
+                        <div class="center-area">
+                            <div class="table-btn" data-table="13">13</div>
+                            <div class="center-tables-grid">
+                                <div class="table-btn" data-table="14">14</div>
+                                <div class="center-circle"></div>
+                                <div class="table-btn" data-table="16">16</div>
+                            </div>
+                            <div class="table-btn" data-table="15">15</div>
+                        </div>
+
+                        <!-- B tables -->
+                        <div class="b-tables-row">
+                            <div class="table-btn" data-table="B2">B2</div>
+                            <div class="table-btn" data-table="B1">B1</div>
+                            <div class="table-btn" data-table="B3">B3</div>
+                            <div class="table-btn" data-table="B4">B4</div>
+                        </div>
+                    </div>
+
+                    <!-- KAPI marker -->
+                    <div class="layout-marker kapi-marker">KAPI</div>
+                    <div class="layout-marker balkon-marker">BALKON</div>
+
+                    <!-- KAMELYA tables -->
+                    <div class="kamelya-section">
+                        <div class="kamelya-col">
+                            <div class="kamelya-label">KAMELYA</div>
+                            <div class="table-btn outdoor-table" data-table="K1">K1</div>
+                            <div class="table-btn outdoor-table" data-table="K2">K2</div>
+                        </div>
+                        <div class="kamelya-col">
+                            <div class="kamelya-label">KAMELYA</div>
+                            <div class="table-btn outdoor-table" data-table="K3">K3</div>
+                            <div class="table-btn outdoor-table" data-table="K4">K4</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
