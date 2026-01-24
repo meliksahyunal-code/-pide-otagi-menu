@@ -1,5 +1,5 @@
 // Cashier Panel JavaScript
-const API_BASE_URL = window.API_CONFIG?.API_BASE_URL || 'https://pide-otagi-menu.onrender.com';
+// API_BASE_URL is loaded from config.js
 
 // State
 let currentTableNumber = null;
