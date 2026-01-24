@@ -412,7 +412,6 @@ function displayActiveOrders(orders) {
             <span class="total-label">Toplam:</span>
             <span class="total-amount">${total}₺</span>
           </div>
-          ${getPersonPaymentButtons(order)}
           <div class="order-actions">
             ${getOrderActionButtons(order)}
           </div>
@@ -512,28 +511,19 @@ function getOrderActionButtons(order) {
         ❌ İptal Et
       </button>
     `;
-    } else if (order.status === 'delivered') {
+    } else if (order.status === 'delivered' || order.status === 'partially_paid') {
         buttons += `
       <button class="btn btn-success btn-sm" disabled>
         ✓ Teslim Edildi
       </button>
-      <button class="btn btn-primary btn-sm" onclick="updateOrderStatus('${order._id}', 'paid')">
-        ✅ Ödendi
-      </button>
+      <span style="color: var(--text-muted); font-size: 0.9rem; margin-left: 10px;">
+        💳 Ödeme için Kasa Panelini kullanın
+      </span>
     `;
     } else if (order.status === 'cancelled') {
         buttons += '<span style="color: var(--text-muted);">İptal edilmiş sipariş</span>';
     } else if (order.status === 'paid') {
         buttons += '<span style="color: var(--success);">✓ Ödeme tamamlandı</span>';
-    }
-
-    // Add table-wide payment button
-    if (showTablePayment && (order.status === 'ready' || order.status === 'delivered')) {
-        buttons += `
-      <button class="btn btn-warning btn-table-pay" onclick="payAllTableOrders('${tableNumber}')">
-        💰 Masa Tamamen Ödendi
-      </button>
-    `;
     }
 
     console.log('Generated buttons:', buttons);
@@ -609,40 +599,6 @@ async function payAllTableOrders(tableNumber) {
         }
     } catch (error) {
         console.error('Toplu ödeme hatası:', error);
-        alert(`Hata: ${error.message}`);
-    }
-}
-
-// Pay for specific person at a table
-async function payForPerson(tableNumber, personNumber, orderId) {
-    if (!confirm(`Masa ${tableNumber} - Kişi ${personNumber}'in siparişi ödenmiş olarak işaretlenecek. Onaylıyor musunuz?`)) {
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/tables/${tableNumber}/pay-person/${personNumber}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Ödeme işlemi başarısız');
-        }
-
-        const result = await response.json();
-        alert(result.message);
-        await loadActiveOrders();
-
-        // Refresh statistics if on that tab
-        const activeTab = document.querySelector('.tab-content.active');
-        if (activeTab && activeTab.id === 'tab-statistics') {
-            loadStatistics();
-        }
-    } catch (error) {
-        console.error('Kişi ödemesi hatası:', error);
         alert(`Hata: ${error.message}`);
     }
 }

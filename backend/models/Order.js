@@ -26,6 +26,10 @@ const orderItemSchema = new mongoose.Schema({
             validator: Number.isInteger,
             message: 'Person number must be an integer'
         }
+    },
+    paidStatus: {
+        type: Boolean,
+        default: false  // Track if individual item is paid
     }
 });
 
@@ -37,7 +41,7 @@ const orderSchema = new mongoose.Schema({
     items: [orderItemSchema],
     status: {
         type: String,
-        enum: ['pending', 'preparing', 'ready', 'delivered', 'cancelled', 'paid'],
+        enum: ['pending', 'preparing', 'ready', 'delivered', 'cancelled', 'partially_paid', 'paid'],
         default: 'pending'
     },
     total: {

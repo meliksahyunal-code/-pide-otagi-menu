@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasa Paneli - Pide Otağı</title>
+    <link rel="stylesheet" href="styles.css?v=3">
+    <link rel="stylesheet" href="cashier-styles.css?v=1">
+</head>
+
+<body>
+    <div class="container">
+        <header class="admin-header">
+            <h1 class="admin-title">💰 Kasa Paneli</h1>
+            <p class="subtitle">Ödeme Takip Sistemi</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" data-tab="tables">📋 Masalar</button>
+            <a href="admin.html" style="text-decoration: none;">
+                <button class="tab-btn">🍽️ Garson Paneli</button>
+            </a>
+            <a href="kitchen.html" style="text-decoration: none;">
+                <button class="tab-btn">👨‍🍳 Mutfak</button>
+            </a>
+        </div>
+
+        <!-- Table List View -->
+        <div id="tab-tables" class="tab-content active">
+            <h2 class="section-title">Ödeme Bekleyen Masalar</h2>
+            <div id="tableListContainer" class="table-list">
+                <!-- Dynamically populated tables -->
+            </div>
+        </div>
+
+        <!-- Item Selection View (Hidden by default) -->
+        <div id="itemSelectionView" class="item-selection-view" style="display: none;">
+            <div class="item-selection-header">
+                <button id="backToTablesBtn" class="btn btn-back">← Geri</button>
+                <h2 id="selectedTableTitle" class="section-title"></h2>
+            </div>
+
+            <div id="itemSelectionContainer" class="item-selection-container">
+                <!-- Dynamically populated items with checkboxes -->
+            </div>
+
+            <div class="payment-summary">
+                <div class="summary-row">
+                    <span class="summary-label">Seçilen Ürünler:</span>
+                    <span id="selectedTotal" class="summary-amount">0₺</span>
+                </div>
+                <div class="summary-row total-row">
+                    <span class="summary-label">Toplam (Ödenmemiş):</span>
+                    <span id="totalUnpaid" class="summary-amount">0₺</span>
+                </div>
+            </div>
+
+            <div class="payment-actions">
+                <button id="paySelectedBtn" class="btn btn-success btn-large" disabled>
+                    ✅ Seçilenleri Öde (0 ürün)
+                </button>
+                <button id="payAllTableBtn" class="btn btn-warning btn-large">
+                    💰 Tüm Masayı Öde (0₺)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="cashier.js"></script>
+</body>
+
+</html>

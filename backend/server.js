@@ -166,30 +166,6 @@ app.post('/api/tables/:tableNumber/pay-all', async (req, res) => {
     try {
         const { tableNumber } = req.params;
 
-        const result = await Order.updateMany(
-            {
-                tableNumber: tableNumber,
-                status: { $nin: ['cancelled', 'paid'] } // Don't update already cancelled/paid
-            },
-            { status: 'paid' }
-        );
-
-        res.json({
-            message: `Masa ${tableNumber} için ${result.modifiedCount} sipariş ödendi`,
-            modifiedCount: result.modifiedCount
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// POST - Belirli bir kişinin siparişlerini ödenmiş olarak işaretle
-app.post('/api/tables/:tableNumber/pay-person/:personNumber', async (req, res) => {
-    try {
-        const { tableNumber, personNumber } = req.params;
-        const personNum = parseInt(personNumber);
-
-        // Find all orders for this table
         const orders = await Order.find({
             tableNumber: tableNumber,
             status: { $nin: ['cancelled', 'paid'] }
@@ -197,31 +173,117 @@ app.post('/api/tables/:tableNumber/pay-person/:personNumber', async (req, res) =
 
         let modifiedCount = 0;
         for (const order of orders) {
-            // Check if this order has items for this person
-            const hasPersonItems = order.items.some(item => item.personNumber === personNum);
-
-            if (hasPersonItems) {
-                // Check if all items belong to this person
-                const allItemsForPerson = order.items.every(item =>
-                    !item.personNumber || item.personNumber === personNum
-                );
-
-                if (allItemsForPerson) {
-                    // If all items are for this person, mark entire order as paid
-                    order.status = 'paid';
-                    await order.save();
-                    modifiedCount++;
-                } else {
-                    // Mixed order - need to split (for now, we'll just mark items)
-                    // In a real app, you might want to create separate orders
-                    console.log(`Mixed order ${order._id} - contains items for multiple people`);
-                }
-            }
+            // Mark all items as paid
+            order.items.forEach(item => {
+                item.paidStatus = true;
+            });
+            order.status = 'paid';
+            await order.save();
+            modifiedCount++;
         }
 
         res.json({
-            message: `Masa ${tableNumber} - Kişi ${personNumber} için ${modifiedCount} sipariş ödendi`,
+            message: `Masa ${tableNumber} için ${modifiedCount} sipariş ödendi`,
             modifiedCount: modifiedCount
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST - Mark specific items in an order as paid
+app.post('/api/orders/:orderId/pay-items', async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { itemIndices } = req.body;
+
+        if (!Array.isArray(itemIndices)) {
+            return res.status(400).json({ error: 'itemIndices must be an array' });
+        }
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        // Mark selected items as paid
+        let paidCount = 0;
+        itemIndices.forEach(index => {
+            if (index >= 0 && index < order.items.length) {
+                order.items[index].paidStatus = true;
+                paidCount++;
+            }
+        });
+
+        // Update order status based on paid items
+        const allItemsPaid = order.items.every(item => item.paidStatus);
+        const someItemsPaid = order.items.some(item => item.paidStatus);
+
+        if (allItemsPaid) {
+            order.status = 'paid';
+        } else if (someItemsPaid) {
+            order.status = 'partially_paid';
+        }
+
+        await order.save();
+
+        res.json({
+            message: `${paidCount} ürün ödendi`,
+            paidCount,
+            orderStatus: order.status,
+            order
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET - Get all items for a table in payment view format
+app.get('/api/tables/:tableNumber/payment-view', async (req, res) => {
+    try {
+        const { tableNumber } = req.params;
+
+        const orders = await Order.find({
+            tableNumber: tableNumber,
+            status: { $nin: ['cancelled', 'paid'] }
+        }).sort({ createdAt: 1 });
+
+        // Flatten all items with order reference
+        const allItems = [];
+        orders.forEach(order => {
+            order.items.forEach((item, itemIndex) => {
+                allItems.push({
+                    orderId: order._id,
+                    orderCreatedAt: order.createdAt,
+                    itemIndex,
+                    itemId: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    personNumber: item.personNumber || 1,
+                    paidStatus: item.paidStatus || false,
+                    itemTotal: item.price * item.quantity
+                });
+            });
+        });
+
+        // Calculate totals
+        const totalUnpaid = allItems
+            .filter(item => !item.paidStatus)
+            .reduce((sum, item) => sum + item.itemTotal, 0);
+
+        const totalPaid = allItems
+            .filter(item => item.paidStatus)
+            .reduce((sum, item) => sum + item.itemTotal, 0);
+
+        res.json({
+            tableNumber,
+            items: allItems,
+            totalUnpaid,
+            totalPaid,
+            grandTotal: totalUnpaid + totalPaid,
+            itemCount: allItems.length,
+            unpaidItemCount: allItems.filter(item => !item.paidStatus).length
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
