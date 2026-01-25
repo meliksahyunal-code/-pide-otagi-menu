@@ -26,6 +26,12 @@ const menuData = {
 // Tüm ürünleri tek array'de birleştir
 const allItems = [...menuData.pides, ...menuData.drinks];
 
+// Helper function to determine if item is pide or beverage
+function getItemType(itemId) {
+    // Pides: ID 1-7, Beverages: ID 8-17
+    return itemId <= 7 ? 'pide' : 'beverage';
+}
+
 // Global state
 let currentOrder = {
     tableNumber: '',
@@ -988,5 +994,158 @@ function updateDeleteButtonVisibility() {
 document.addEventListener('change', (e) => {
     if (e.target.classList.contains('order-checkbox')) {
         updateDeleteButtonVisibility();
+    }
+    if (e.target.classList.contains('delivery-checkbox')) {
+        updateDeliveryButtonVisibility();
+    }
+});
+
+// ============= DELIVERY TRACKING FUNCTIONS =============
+
+// Helper to show/hide delivery buttons
+function updateDeliveryButtonVisibility() {
+    const deliverSelectedBtn = document.getElementById('deliverSelectedBtn');
+    const selectedCheckboxes = document.querySelectorAll('.delivery-checkbox:checked:not(:disabled)');
+
+    if (deliverSelectedBtn) {
+        deliverSelectedBtn.style.display = selectedCheckboxes.length > 0 ? 'block' : 'none';
+    }
+}
+
+// Calculate pending tasks
+async function calculatePendingTasks() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/orders/active`);
+        const orders = await response.json();
+
+        let beveragesToDeliver = 0;
+        let pidesToPickup = 0;
+        let pidesBeingPrepared = 0;
+
+        orders.forEach(order => {
+            order.items.forEach(item => {
+                const itemType = getItemType(item.id);
+                const isDelivered = item.deliveredStatus || false;
+
+                if (itemType === 'beverage' && !isDelivered) {
+                    beveragesToDeliver++;
+                } else if (itemType === 'pide' && !isDelivered) {
+                    if (order.status === 'ready') {
+                        pidesToPickup++;
+                    } else if (order.status === 'preparing' || order.status === 'pending') {
+                        pidesBeingPrepared++;
+                    }
+                }
+            });
+        });
+
+        return { beveragesToDeliver, pidesToPickup, pidesBeingPrepared };
+    } catch (error) {
+        console.error('Error calculating tasks:', error);
+        return { beveragesToDeliver: 0, pidesToPickup: 0, pidesBeingPrepared: 0 };
+    }
+}
+
+// Show pending tasks summary
+async function showPendingTasks() {
+    const tasks = await calculatePendingTasks();
+    const summaryDiv = document.getElementById('pendingTasksSummary');
+    const contentDiv = document.getElementById('pendingTasksContent');
+
+    let html = '<ul style="margin: 0; padding-left: 20px;">';
+    if (tasks.pidesToPickup > 0) {
+        html += `<li><strong>${tasks.pidesToPickup} pide</strong> mutfaktan alınacak (Hazır)</li>`;
+    }
+    if (tasks.beveragesToDeliver > 0) {
+        html += `<li><strong>${tasks.beveragesToDeliver} içecek</strong> teslim edilecek</li>`;
+    }
+    if (tasks.pidesBeingPrepared > 0) {
+        html += `<li><strong>${tasks.pidesBeingPrepared} pide</strong> hazırlanıyor (Bekleyin)</li>`;
+    }
+    if (tasks.pidesToPickup === 0 && tasks.beveragesToDeliver === 0 && tasks.pidesBeingPrepared === 0) {
+        html += '<li style="color: var(--text-muted);">Şu anda bekleyen iş yok</li>';
+    }
+    html += '</ul>';
+
+    contentDiv.innerHTML = html;
+    summaryDiv.style.display = summaryDiv.style.display === 'none' ? 'block' : 'none';
+}
+
+// Mark selected items as delivered
+async function deliverSelectedItems() {
+    const checkboxes = document.querySelectorAll('.delivery-checkbox:checked:not(:disabled)');
+    if (checkboxes.length === 0) return;
+
+    const itemsByOrder = {};
+    checkboxes.forEach(cb => {
+        const orderId = cb.dataset.orderId;
+        const itemIndex = parseInt(cb.dataset.itemIndex);
+        if (!itemsByOrder[orderId]) itemsByOrder[orderId] = [];
+        itemsByOrder[orderId].push(itemIndex);
+    });
+
+    for (const [orderId, itemIndices] of Object.entries(itemsByOrder)) {
+        await fetch(`${API_BASE_URL}/api/orders/${orderId}/deliver-items`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ itemIndices })
+        });
+    }
+    location.reload();
+}
+
+// Mark all beverages as delivered
+async function deliverAllBeverages() {
+    if (!confirm('Tüm içecekleri teslim edilmiş olarak işaretlemek istediğinize emin misiniz?')) return;
+
+    const response = await fetch(`${API_BASE_URL}/api/orders/active`);
+    const orders = await response.json();
+
+    for (const order of orders) {
+        const beverageIndices = [];
+        order.items.forEach((item, index) => {
+            if (getItemType(item.id) === 'beverage' && !item.deliveredStatus) {
+                beverageIndices.push(index);
+            }
+        });
+
+        if (beverageIndices.length > 0) {
+            await fetch(`${API_BASE_URL}/api/orders/${order._id}/deliver-items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemIndices: beverageIndices })
+            });
+        }
+    }
+    location.reload();
+}
+
+// Attach event listeners for delivery buttons
+document.addEventListener('DOMContentLoaded', () => {
+    const showTasksBtn = document.getElementById('showPendingTasksBtn');
+    if (showTasksBtn) {
+        showTasksBtn.addEventListener('click', showPendingTasks);
+    }
+
+    const deliverSelectedBtn = document.getElementById('deliverSelectedBtn');
+    if (deliverSelectedBtn) {
+        deliverSelectedBtn.addEventListener('click', deliverSelectedItems);
+    }
+
+    const deliverAllBeveragesBtn = document.getElementById('deliverAllBeveragesBtn');
+    if (deliverAllBeveragesBtn) {
+        deliverAllBeveragesBtn.addEventListener('click', deliverAllBeverages);
+
+        // Show button if there are beverages to deliver
+        fetch(`${API_BASE_URL}/api/orders/active`)
+            .then(r => r.json())
+            .then(orders => {
+                const hasBeverages = orders.some(o => o.items.some(i =>
+                    getItemType(i.id) === 'beverage' && !i.deliveredStatus
+                ));
+                if (hasBeverages) {
+                    deliverAllBeveragesBtn.style.display = 'block';
+                }
+            });
     }
 });

@@ -211,8 +211,18 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2 class="section-title" style="margin-bottom: 0;">Aktif Siparişler</h2>
                     <div style="display: flex; gap: 10px; align-items: center;">
+                        <button id="showPendingTasksBtn" class="btn btn-secondary btn-sm"
+                            title="Bekleyen İşleri Göster">
+                            📝 Bekleyen İşler
+                        </button>
                         <button id="refreshActiveOrdersBtn" class="btn btn-secondary btn-sm" title="Siparişleri Yenile">
                             🔄 Yenile
+                        </button>
+                        <button id="deliverAllBeveragesBtn" class="btn btn-success btn-sm" style="display: none;">
+                            🥤 Tüm İçecekleri Teslim Et
+                        </button>
+                        <button id="deliverSelectedBtn" class="btn btn-success btn-sm" style="display: none;">
+                            ✅ Seçilenleri Teslim Et
                         </button>
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                             <input type="checkbox" id="selectAllOrders" style="width: 18px; height: 18px;">
@@ -223,6 +233,15 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Pending Tasks Summary (Hidden by default) -->
+                <div id="pendingTasksSummary"
+                    style="display: none; background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 10px 0; color: var(--primary-gold); font-size: 1.1rem;">📝 Garson İçin
+                        Bekleyen İşler</h3>
+                    <div id="pendingTasksContent" style="color: var(--text-light); line-height: 1.6;"></div>
+                </div>
+
                 <div id="ordersContainer" class="orders-grid">
                     <!-- Siparişler buraya JavaScript ile eklenecek -->
                 </div>
