@@ -19,7 +19,7 @@ function generatePersonGroupedItemsForKitchen(items) {
     if (Object.keys(byPerson).length === 1 && byPerson[1]) {
         return items.map(item => `
             <div class="order-item">
-                <span><span class="item-quantity">${item.quantity}x</span> $ {item.name}</span>
+                <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
                 <span>${item.price * item.quantity}₺</span>
             </div>
         `).join('');
