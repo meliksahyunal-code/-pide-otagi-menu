@@ -8,6 +8,118 @@
     <link rel="stylesheet" href="styles.css?v=3">
     <link rel="stylesheet" href="cashier-styles.css?v=1738163936">
     <link rel="stylesheet" href="table-map-styles.css?v=2">
+
+    <!-- Inline critical glassmorphism styles to bypass caching -->
+    <style>
+        /* Premium Glassmorphism Overrides */
+        .table-card {
+            background: rgba(255, 255, 255, 0.03) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .table-card:hover {
+            border-color: rgba(212, 175, 55, 0.5) !important;
+            box-shadow: 0 12px 35px rgba(212, 175, 55, 0.25) !important;
+        }
+
+        .table-card-amount {
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.3) !important;
+        }
+
+        .item-selection-header {
+            background: rgba(255, 255, 255, 0.03) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 20px !important;
+            padding: 18px 24px !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .item-selection-header h2 {
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.4) !important;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.05) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 50px !important;
+            padding: 12px 24px !important;
+        }
+
+        .btn-back:hover {
+            background: rgba(212, 175, 55, 0.15) !important;
+            border-color: var(--primary-gold) !important;
+        }
+
+        .item-selection-container {
+            background: rgba(255, 255, 255, 0.03) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .item-checkbox-row {
+            background: rgba(255, 255, 255, 0.05) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 16px !important;
+            padding: 16px !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .item-checkbox-row:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(212, 175, 55, 0.3) !important;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .item-price {
+            background: rgba(212, 175, 55, 0.15) !important;
+            padding: 6px 14px !important;
+            border-radius: 12px !important;
+        }
+
+        .payment-summary {
+            background: rgba(255, 255, 255, 0.04) !important;
+            backdrop-filter: blur(15px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .summary-amount {
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3) !important;
+        }
+
+        .btn-large {
+            border-radius: 50px !important;
+            padding: 20px 35px !important;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 10px 30px rgba(56, 239, 125, 0.4) !important;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%) !important;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4) !important;
+        }
+    </style>
 </head>
 
 <body>
