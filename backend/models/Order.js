@@ -30,6 +30,10 @@ const orderItemSchema = new mongoose.Schema({
     paidStatus: {
         type: Boolean,
         default: false  // Track if individual item is paid
+    },
+    deliveredStatus: {
+        type: Boolean,
+        default: false  // Track if individual item is delivered
     }
 });
 

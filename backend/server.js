@@ -238,6 +238,46 @@ app.post('/api/orders/:orderId/pay-items', async (req, res) => {
     }
 });
 
+// POST - Mark specific items as delivered
+app.post('/api/orders/:orderId/deliver-items', async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { itemIndices } = req.body;
+
+        if (!Array.isArray(itemIndices)) {
+            return res.status(400).json({ error: 'itemIndices must be an array' });
+        }
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ error: 'Sipariş bulunamadı' });
+        }
+
+        // Mark specified items as delivered
+        itemIndices.forEach(index => {
+            if (order.items[index]) {
+                order.items[index].deliveredStatus = true;
+            }
+        });
+
+        // Check if all items are delivered
+        const allDelivered = order.items.every(item => item.deliveredStatus);
+        if (allDelivered && order.status !== 'delivered') {
+            order.status = 'delivered';
+        }
+
+        await order.save();
+
+        res.json({
+            message: 'Items marked as delivered',
+            order,
+            allDelivered
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // GET - Get all items for a table in payment view format
 app.get('/api/tables/:tableNumber/payment-view', async (req, res) => {
     try {
