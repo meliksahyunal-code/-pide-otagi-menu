@@ -253,12 +253,20 @@ function playNotificationSound() {
     }
 }
 
-// Initialize
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    // Load orders immediately
-    loadKitchenOrders();
+    console.log('Kitchen Panel loaded');
 
-    // Filter buttons
+    // Refresh button event listener
+    const refreshBtn = document.getElementById('refreshKitchenBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            console.log('Refreshing kitchen orders...');
+            loadKitchenOrders();
+        });
+    }
+
+    // Filter button event listeners
     document.querySelectorAll('[data-filter]').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
@@ -268,10 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Auto-refresh every 10 seconds
-    // This also keeps the Render backend awake during kitchen hours
-    setInterval(() => {
-        console.log('🔄 Kitchen: Auto-refreshing orders...');
-        loadKitchenOrders();
-    }, 10000);
+    loadKitchenOrders();
+    // Auto-refresh every 5 seconds
+    setInterval(loadKitchenOrders, 5000);
 });

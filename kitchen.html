@@ -68,8 +68,12 @@
         <header class="admin-header kitchen-header">
             <h1 class="admin-title">🔥 Mutfak Paneli - Pide Otağı</h1>
             <p class="subtitle">Sipariş Görüntüleme ve Durum Yönetimi</p>
-            <div style="margin-top: 15px;">
+            <div
+                style="margin-top: 15px; display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap;">
                 <span id="orderCount" class="new-order-badge">0 Bekleyen Sipariş</span>
+                <button id="refreshKitchenBtn" class="btn btn-secondary btn-sm" title="Siparişleri Yenile">
+                    🔄 Yenile
+                </button>
             </div>
         </header>
 

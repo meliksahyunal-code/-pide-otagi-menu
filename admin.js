@@ -824,6 +824,15 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedPerson = maxPersonNumber;
     });
 
+    // Refresh active orders button
+    const refreshActiveOrdersBtn = document.getElementById('refreshActiveOrdersBtn');
+    if (refreshActiveOrdersBtn) {
+        refreshActiveOrdersBtn.addEventListener('click', () => {
+            console.log('Refreshing active orders...');
+            loadActiveOrders();
+        });
+    }
+
     document.getElementById('confirmPortion').addEventListener('click', confirmPortionSelection);
     document.getElementById('cancelPortion').addEventListener('click', closePortionModal);
 
