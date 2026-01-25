@@ -1,7 +1,14 @@
 // Kitchen Panel JavaScript
 
 let currentFilter = 'all';
+let currentCategory = 'all'; // 'all', 'pides', 'beverages'
 let orders = [];
+
+// Helper function to determine if item is pide or beverage
+function getItemType(itemId) {
+    // Pides: ID 1-7, Beverages: ID 8-17
+    return itemId <= 7 ? 'pide' : 'beverage';
+}
 
 // Helper function to group and display items by person for kitchen
 function generatePersonGroupedItemsForKitchen(items) {
@@ -64,17 +71,35 @@ async function loadKitchenOrders() {
     }
 }
 
-// Display orders based on filter
+// Display orders based on filter and category
 function displayKitchenOrders() {
     const container = document.getElementById('kitchenOrders');
 
     let filteredOrders = orders;
+
+    // First filter by status
     if (currentFilter !== 'all') {
         filteredOrders = orders.filter(o => o.status === currentFilter);
     }
 
     if (!filteredOrders || filteredOrders.length === 0) {
         container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Gösterilecek sipariş yok</p>';
+        return;
+    }
+
+    // Then filter by category
+    if (currentCategory !== 'all') {
+        filteredOrders = filteredOrders.map(order => {
+            const filteredItems = order.items.filter(item => {
+                const itemType = getItemType(item.id);
+                return currentCategory === 'pides' ? itemType === 'pide' : itemType === 'beverage';
+            });
+            return filteredItems.length > 0 ? { ...order, items: filteredItems } : null;
+        }).filter(order => order !== null);
+    }
+
+    if (!filteredOrders || filteredOrders.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Bu kategoride sipariş yok</p>';
         return;
     }
 
@@ -97,6 +122,9 @@ function displayKitchenOrders() {
             // Calculate time since order
             const timeSince = getTimeSince(order.createdAt);
 
+            // Check if order has beverages only
+            const hasBeveragesOnly = order.items.every(item => getItemType(item.id) === 'beverage');
+
             html += `
         <div class="order-card ${statusClass}">
           <div class="order-header">
@@ -113,9 +141,9 @@ function displayKitchenOrders() {
             <span class="total-label">Toplam:</span>
             <span class="total-amount">${total}₺</span>
           </div>
-          <div class="kitchen-actions">
+          ${hasBeveragesOnly ? '<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; margin: 10px 0;">İçecekler garson tarafından servise hazır</p>' : '<div class="kitchen-actions">'}
             ${getKitchenActionButtons(order)}
-          </div>
+          </div>'}
         </div>
       `;
         });
@@ -265,6 +293,16 @@ document.addEventListener('DOMContentLoaded', () => {
             loadKitchenOrders();
         });
     }
+
+    // Category filter button event listeners
+    document.querySelectorAll('[data-category]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('[data-category]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCategory = btn.dataset.category;
+            displayKitchenOrders();
+        });
+    });
 
     // Filter button event listeners
     document.querySelectorAll('[data-filter]').forEach(btn => {
