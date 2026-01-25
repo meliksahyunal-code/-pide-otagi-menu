@@ -830,6 +830,117 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedPerson = maxPersonNumber;
     });
 
+    // Load and display active orders
+    async function loadActiveOrders() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/orders/active`);
+            const orders = await response.json();
+            displayActiveOrders(orders);
+        } catch (error) {
+            console.error('Error loading active orders:', error);
+            const container = document.getElementById('ordersContainer');
+            if (container) {
+                container.innerHTML = '<p style="color: red; text-align: center;">Siparişler yüklenemedi</p>';
+            }
+        }
+    }
+
+    // Display active orders with delivery checkboxes
+    function displayActiveOrders(orders) {
+        const container = document.getElementById('ordersContainer');
+        if (!container) return;
+
+        if (!orders || orders.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Aktif sipariş yok</p>';
+            return;
+        }
+
+        let html = '';
+        orders.forEach(order => {
+            const statusText = getOrderStatusText(order.status);
+            const total = order.total || order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            html += `
+                <div class="order-card" style="background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div>
+                            <span style="background: var(--primary-gold); color: var(--bg-dark); padding: 6px 12px; border-radius: 8px; font-weight: 700;">Masa ${order.tableNumber}</span>
+                            <span style="color: var(--text-muted); margin-left: 10px;">${statusText}</span>
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" class="order-checkbox" data-order-id="${order._id}" style="width: 18px; height: 18px;">
+                            <span style="color: var(--text-muted); font-size: 0.9rem;">Seç</span>
+                        </label>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        ${generateOrderItemsHTML(order)}
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <span style="color: var(--text-light);">Toplam:</span>
+                        <span style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 700;">${total}₺</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // Generate HTML for order items with delivery checkboxes
+    function generateOrderItemsHTML(order) {
+        let html = '';
+        order.items.forEach((item, index) => {
+            const itemType = getItemType(item.id);
+            const isDelivered = item.deliveredStatus || false;
+
+            if (itemType === 'beverage') {
+                html += `
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 8px;">
+                        <input type="checkbox" 
+                               class="delivery-checkbox"
+                               data-order-id="${order._id}"
+                               data-item-index="${index}"
+                               ${isDelivered ? 'checked disabled' : ''}
+                               style="width: 18px; height: 18px;">
+                        <div style="flex: 1;">
+                            <span style="color: var(--text-light);">${item.quantity}x ${item.name}</span>
+                            ${item.personNumber ? `<span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">(Kişi ${item.personNumber})</span>` : ''}
+                        </div>
+                        <span style="color: var(--primary-gold);">${item.price * item.quantity}₺</span>
+                        ${isDelivered ? '<span style="color: #38ef7d; font-size: 0.85rem;">✓ Teslim Edildi</span>' : ''}
+                    </div>
+                `;
+            } else {
+                // Pides - no checkbox
+                html += `
+                    <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 8px;">
+                        <div>
+                            <span style="color: var(--text-light);">${item.quantity}x ${item.name}</span>
+                            ${item.personNumber ? `<span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">(Kişi ${item.personNumber})</span>` : ''}
+                        </div>
+                        <span style="color: var(--primary-gold);">${item.price * item.quantity}₺</span>
+                    </div>
+                `;
+            }
+        });
+        return html;
+    }
+
+    // Helper to get order status text
+    function getOrderStatusText(status) {
+        const statusMap = {
+            'pending': 'Bekliyor',
+            'preparing': 'Hazırlanıyor',
+            'ready': '✅ Hazır',
+            'delivered': 'Teslim Edildi',
+            'partially_paid': 'Kısmi Ödendi',
+            'paid': 'Ödendi'
+        };
+        return statusMap[status] || status;
+    }
+
     // Refresh active orders button
     const refreshActiveOrdersBtn = document.getElementById('refreshActiveOrdersBtn');
     if (refreshActiveOrdersBtn) {
