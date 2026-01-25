@@ -860,6 +860,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusText = getOrderStatusText(order.status);
             const total = order.total || order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+            // Check if order has any beverages
+            const hasBeverages = order.items.some(item => getItemType(item.id) === 'beverage');
+            const hasUndeliveredBeverages = order.items.some(item =>
+                getItemType(item.id) === 'beverage' && !item.deliveredStatus
+            );
+
             html += `
                 <div class="order-card" style="background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -881,6 +887,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span style="color: var(--text-light);">Toplam:</span>
                         <span style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 700;">${total}₺</span>
                     </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        ${hasBeverages && hasUndeliveredBeverages ? `
+                            <button class="btn btn-success btn-sm" onclick="deliverOrderBeverages('${order._id}')" style="flex: 1;">
+                                🥤 İçecekleri Teslim Et
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-primary btn-sm" onclick="deliverEntireOrder('${order._id}')" style="flex: 1;">
+                            ✅ Teslim Edildi
+                        </button>
+                    </div>
                 </div>
             `;
         });
@@ -888,42 +905,23 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = html;
     }
 
-    // Generate HTML for order items with delivery checkboxes
+    // Generate HTML for order items with delivery status
     function generateOrderItemsHTML(order) {
         let html = '';
         order.items.forEach((item, index) => {
             const itemType = getItemType(item.id);
             const isDelivered = item.deliveredStatus || false;
 
-            if (itemType === 'beverage') {
-                html += `
-                    <div style="display: flex; align-items: center; gap: 12px; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 8px;">
-                        <input type="checkbox" 
-                               class="delivery-checkbox"
-                               data-order-id="${order._id}"
-                               data-item-index="${index}"
-                               ${isDelivered ? 'checked disabled' : ''}
-                               style="width: 18px; height: 18px;">
-                        <div style="flex: 1;">
-                            <span style="color: var(--text-light);">${item.quantity}x ${item.name}</span>
-                            ${item.personNumber ? `<span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">(Kişi ${item.personNumber})</span>` : ''}
-                        </div>
-                        <span style="color: var(--primary-gold);">${item.price * item.quantity}₺</span>
-                        ${isDelivered ? '<span style="color: #38ef7d; font-size: 0.85rem;">✓ Teslim Edildi</span>' : ''}
+            html += `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 8px;">
+                    <div style="flex: 1;">
+                        <span style="color: var(--text-light);">${item.quantity}x ${item.name}</span>
+                        ${item.personNumber ? `<span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">(Kişi ${item.personNumber})</span>` : ''}
+                        ${isDelivered && itemType === 'beverage' ? '<span style="color: #38ef7d; font-size: 0.85rem; margin-left: 8px;">✓ Teslim Edildi</span>' : ''}
                     </div>
-                `;
-            } else {
-                // Pides - no checkbox
-                html += `
-                    <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-bottom: 8px;">
-                        <div>
-                            <span style="color: var(--text-light);">${item.quantity}x ${item.name}</span>
-                            ${item.personNumber ? `<span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">(Kişi ${item.personNumber})</span>` : ''}
-                        </div>
-                        <span style="color: var(--primary-gold);">${item.price * item.quantity}₺</span>
-                    </div>
-                `;
-            }
+                    <span style="color: var(--primary-gold);">${item.price * item.quantity}₺</span>
+                </div>
+            `;
         });
         return html;
     }
