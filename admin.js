@@ -1180,6 +1180,60 @@ async function showPendingTasks() {
     summaryDiv.style.display = summaryDiv.style.display === 'none' ? 'block' : 'none';
 }
 
+// Mark all beverages for a specific order as delivered
+async function deliverOrderBeverages(orderId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/orders/active`);
+        const orders = await response.json();
+        const order = orders.find(o => o._id === orderId);
+
+        if (!order) {
+            alert('Sipariş bulunamadı');
+            return;
+        }
+
+        const beverageIndices = [];
+        order.items.forEach((item, index) => {
+            if (getItemType(item.id) === 'beverage' && !item.deliveredStatus) {
+                beverageIndices.push(index);
+            }
+        });
+
+        if (beverageIndices.length > 0) {
+            await fetch(`${API_BASE_URL}/api/orders/${orderId}/deliver-items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemIndices: beverageIndices })
+            });
+        }
+
+        loadActiveOrders();
+    } catch (error) {
+        console.error('Error delivering beverages:', error);
+        alert('Hata: İçecekler teslim edilemedi');
+    }
+}
+
+// Mark entire order as delivered
+async function deliverEntireOrder(orderId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'delivered' })
+        });
+
+        if (response.ok) {
+            loadActiveOrders();
+        } else {
+            alert('Hata: Sipariş teslim edilemedi');
+        }
+    } catch (error) {
+        console.error('Error delivering order:', error);
+        alert('Hata: Sipariş teslim edilemedi');
+    }
+}
+
 // Mark selected items as delivered
 async function deliverSelectedItems() {
     const checkboxes = document.querySelectorAll('.delivery-checkbox:checked:not(:disabled)');
@@ -1258,3 +1312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 });
+
+// Make delivery functions globally accessible for onclick handlers
+window.deliverOrderBeverages = deliverOrderBeverages;
+window.deliverEntireOrder = deliverEntireOrder;
