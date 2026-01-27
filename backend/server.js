@@ -42,11 +42,11 @@ app.get('/api/orders', async (req, res) => {
     }
 });
 
-// GET - Aktif siparişleri getir (exclude cancelled and paid)
+// GET - Aktif siparişleri getir (exclude cancelled, paid, and delivered)
 app.get('/api/orders/active', async (req, res) => {
     try {
         const orders = await Order.find({
-            status: { $in: ['pending', 'preparing', 'ready', 'delivered'] }
+            status: { $in: ['pending', 'preparing', 'ready'] }
         }).sort({ createdAt: -1 });
         res.json(orders);
     } catch (error) {

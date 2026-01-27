@@ -773,6 +773,119 @@ function renderMenu() {
     });
 }
 
+// ============= TAB NAVIGATION =============
+function initTabNavigation() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.dataset.tab;
+
+            // Remove active class from all tabs
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Add active class to clicked tab
+            button.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            // Load data for specific tabs
+            if (tabName === 'statistics') {
+                loadStatistics();
+            } else if (tabName === 'active-orders') {
+                loadActiveOrders();
+            }
+        });
+    });
+}
+
+// ============= ACTIVE ORDERS MANAGEMENT =============
+// Load and display active orders
+async function loadActiveOrders() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/orders/active`);
+        const orders = await response.json();
+        displayActiveOrders(orders);
+    } catch (error) {
+        console.error('Error loading active orders:', error);
+        const container = document.getElementById('ordersContainer');
+        if (container) {
+            container.innerHTML = '<p style="color: red; text-align: center;">Siparişler yüklenemedi</p>';
+        }
+    }
+}
+
+// Display active orders with delivery checkboxes
+function displayActiveOrders(orders) {
+    const container = document.getElementById('ordersContainer');
+    if (!container) return;
+
+    if (!orders || orders.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Aktif sipariş yok</p>';
+        return;
+    }
+
+    let html = '';
+    orders.forEach(order => {
+        const statusText = getOrderStatusText(order.status);
+        const total = order.total || order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        // Check if order has any beverages and pides
+        const hasBeverages = order.items.some(item => getItemType(item.id) === 'beverage');
+        const hasPides = order.items.some(item => getItemType(item.id) === 'pide');
+        const hasUndeliveredBeverages = order.items.some(item =>
+            getItemType(item.id) === 'beverage' && !item.deliveredStatus
+        );
+
+        // Can deliver fully only if: no pides OR order status is 'ready'
+        const canDeliverFully = !hasPides || order.status === 'ready';
+
+        html += `
+            <div class="order-card" style="background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <span style="background: var(--primary-gold); color: var(--bg-dark); padding: 6px 12px; border-radius: 8px; font-weight: 700;">Masa ${order.tableNumber}</span>
+                        <span style="color: var(--text-muted); margin-left: 10px;">${statusText}</span>
+                    </div>
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" class="order-checkbox" data-order-id="${order._id}" style="width: 18px; height: 18px;">
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">Seç</span>
+                    </label>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    ${generateOrderItemsHTML(order)}
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                    <span style="color: var(--text-light);">Toplam:</span>
+                    <span style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 700;">${total}₺</span>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    ${hasBeverages && hasUndeliveredBeverages ? `
+                        <button class="btn btn-success btn-sm" onclick="deliverOrderBeverages('${order._id}')" style="flex: 1;">
+                            🥤 İçecekleri Teslim Et
+                        </button>
+                    ` : ''}
+                    ${canDeliverFully ? `
+                        <button class="btn btn-primary btn-sm" onclick="deliverEntireOrder('${order._id}')" style="flex: 1;">
+                            ✅ Teslim Edildi
+                        </button>
+                    ` : `
+                        <div style="padding: 10px; background: rgba(255,165,0,0.1); border-radius: 8px; text-align: center; flex: 1;">
+                            <span style="color: #ffa500;">⏳ Mutfakta hazırlanıyor...</span>
+                        </div>
+                    `}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
 // ============= INITIALIZATION =============
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize table selection
@@ -830,80 +943,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedPerson = maxPersonNumber;
     });
 
-    // Load and display active orders
-    async function loadActiveOrders() {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/orders/active`);
-            const orders = await response.json();
-            displayActiveOrders(orders);
-        } catch (error) {
-            console.error('Error loading active orders:', error);
-            const container = document.getElementById('ordersContainer');
-            if (container) {
-                container.innerHTML = '<p style="color: red; text-align: center;">Siparişler yüklenemedi</p>';
-            }
-        }
-    }
 
-    // Display active orders with delivery checkboxes
-    function displayActiveOrders(orders) {
-        const container = document.getElementById('ordersContainer');
-        if (!container) return;
-
-        if (!orders || orders.length === 0) {
-            container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Aktif sipariş yok</p>';
-            return;
-        }
-
-        let html = '';
-        orders.forEach(order => {
-            const statusText = getOrderStatusText(order.status);
-            const total = order.total || order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-            // Check if order has any beverages
-            const hasBeverages = order.items.some(item => getItemType(item.id) === 'beverage');
-            const hasUndeliveredBeverages = order.items.some(item =>
-                getItemType(item.id) === 'beverage' && !item.deliveredStatus
-            );
-
-            html += `
-                <div class="order-card" style="background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <div>
-                            <span style="background: var(--primary-gold); color: var(--bg-dark); padding: 6px 12px; border-radius: 8px; font-weight: 700;">Masa ${order.tableNumber}</span>
-                            <span style="color: var(--text-muted); margin-left: 10px;">${statusText}</span>
-                        </div>
-                        <label style="display: flex; align-items: center; gap: 8px;">
-                            <input type="checkbox" class="order-checkbox" data-order-id="${order._id}" style="width: 18px; height: 18px;">
-                            <span style="color: var(--text-muted); font-size: 0.9rem;">Seç</span>
-                        </label>
-                    </div>
-
-                    <div style="margin-bottom: 15px;">
-                        ${generateOrderItemsHTML(order)}
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
-                        <span style="color: var(--text-light);">Toplam:</span>
-                        <span style="color: var(--primary-gold); font-size: 1.3rem; font-weight: 700;">${total}₺</span>
-                    </div>
-                    
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        ${hasBeverages && hasUndeliveredBeverages ? `
-                            <button class="btn btn-success btn-sm" onclick="deliverOrderBeverages('${order._id}')" style="flex: 1;">
-                                🥤 İçecekleri Teslim Et
-                            </button>
-                        ` : ''}
-                        <button class="btn btn-primary btn-sm" onclick="deliverEntireOrder('${order._id}')" style="flex: 1;">
-                            ✅ Teslim Edildi
-                        </button>
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-    }
 
     // Generate HTML for order items with delivery status
     function generateOrderItemsHTML(order) {
