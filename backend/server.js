@@ -54,6 +54,36 @@ app.get('/api/orders/active', async (req, res) => {
     }
 });
 
+// GET - Basılmamış (unprinted) siparişleri getir — Print Agent bunu kullanır
+app.get('/api/orders/unprinted', async (req, res) => {
+    try {
+        const orders = await Order.find({
+            printed: false,
+            status: { $nin: ['cancelled'] }
+        }).sort({ createdAt: 1 });
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// PATCH - Siparişi basıldı olarak işaretle — Print Agent bunu çağırır
+app.patch('/api/orders/:id/mark-printed', async (req, res) => {
+    try {
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
+            { printed: true, printedAt: new Date() },
+            { new: true }
+        );
+        if (!order) {
+            return res.status(404).json({ error: 'Sipariş bulunamadı' });
+        }
+        res.json({ success: true, order });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // GET - Belirli bir siparişi getir
 app.get('/api/orders/:id', async (req, res) => {
     try {
@@ -78,9 +108,19 @@ app.post('/api/orders', async (req, res) => {
             });
         }
 
+        // Günlük sıra numarası hesapla
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayCount = await Order.countDocuments({
+            createdAt: { $gte: today }
+        });
+        const orderNumber = todayCount + 1;
+
         const order = new Order({
             tableNumber,
-            items
+            items,
+            orderNumber,
+            printed: false
         });
 
         await order.save();
@@ -536,9 +576,7 @@ app.get('/api/statistics/weekday-trends', async (req, res) => {
         orders.forEach(order => {
             const dayOfWeek = new Date(order.createdAt).getDay();
             weekdayMap[dayOfWeek].orders += 1;
-            weekday
-
-            Map[dayOfWeek].revenue += order.total || 0;
+            weekdayMap[dayOfWeek].revenue += order.total || 0;
             weekdayMap[dayOfWeek].count += 1;
         });
 

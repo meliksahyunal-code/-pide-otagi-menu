@@ -293,11 +293,14 @@ async function createOrder() {
             items: []
         };
         document.getElementById('tableNumber').value = '';
+        document.getElementById('selectedTableText').innerHTML = 'Masa Seçin';
+        document.getElementById('selectedTableText').classList.add('placeholder');
         updateCurrentOrderDisplay();
 
-        alert('Sipariş başarıyla kaydedildi!');
+        // Başarı bildirimi
+        showToast(`✅ Sipariş kaydedildi! 🖨️ Mutfak fişi yazıcıya gönderildi.`, 'success');
 
-        // Refresh active orders if on that tab
+        // Aktif siparişler sekmesindeyse yenile
         const activeTab = document.querySelector('.tab-content.active');
         if (activeTab && activeTab.id === 'tab-active-orders') {
             loadActiveOrders();
@@ -491,24 +494,30 @@ function getPersonPaymentButtons(order) {
 
 function getOrderActionButtons(order) {
     const tableNumber = order.tableNumber;
-    const showTablePayment = true;
 
     let buttons = '';
 
-    // Debug log
-    console.log('Getting buttons for order:', order._id, 'status:', order.status);
-
-    // Waiter can only mark as "Teslim Edildi" when status is "ready"
+    // YENİ AKIŞ: Mutfak onayı yok.
+    // Sipariş girer → Fiş otomatik basılır → Fırın pişirir → Garson teslim eder
     if (order.status === 'pending' || order.status === 'preparing') {
+        const printedBadge = order.printed
+            ? `<span style="color: #38ef7d; font-size: 0.85rem;">🖨️ Fiş basıldı</span>`
+            : `<span style="color: #f4a261; font-size: 0.85rem;">⏳ Fiş yazıcıya gönderiliyor...</span>`;
+
         buttons += `
-      <div style="text-align: center; color: var(--text-muted); padding: 10px;">
-        ⏳ Mutfakta hazırlanıyor...
+      <div style="text-align: center; padding: 10px;">
+        ${printedBadge}
+        <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">🔥 Fırında hazırlanıyor</div>
       </div>
+      <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order._id}', 'delivered')" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+        🍽️ Teslim Edildi
+      </button>
       <button class="btn btn-danger btn-sm" onclick="cancelOrder('${order._id}')">
         ❌ İptal Et
       </button>
     `;
     } else if (order.status === 'ready') {
+        // ready durumu artık kullanılmayacak ama eski veriler için göster
         buttons += `
       <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order._id}', 'delivered')" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); animation: pulse 2s infinite;">
         🍽️ Teslim Edildi (Masaya Götür)
@@ -532,7 +541,6 @@ function getOrderActionButtons(order) {
         buttons += '<span style="color: var(--success);">✓ Ödeme tamamlandı</span>';
     }
 
-    console.log('Generated buttons:', buttons);
     return buttons;
 }
 
@@ -838,8 +846,12 @@ function displayActiveOrders(orders) {
             getItemType(item.id) === 'beverage' && !item.deliveredStatus
         );
 
-        // Can deliver fully only if: no pides OR order status is 'ready'
-        const canDeliverFully = !hasPides || order.status === 'ready';
+        // YENİ AKIŞ: Fiş sistemi olduğundan mutfak onayı beklenmez
+        // Tüm siparişler teslim edilebilir
+        const canDeliverFully = true;
+        const printedBadge = order.printed
+            ? `<span style="font-size:0.8rem; color:#38ef7d;">🖨️ Fiş basıldı</span>`
+            : `<span style="font-size:0.8rem; color:#f4a261;">⏳ Fiş bekleniyor</span>`;
 
         html += `
             <div class="order-card" style="background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
@@ -847,6 +859,7 @@ function displayActiveOrders(orders) {
                     <div>
                         <span style="background: var(--primary-gold); color: var(--bg-dark); padding: 6px 12px; border-radius: 8px; font-weight: 700;">Masa ${order.tableNumber}</span>
                         <span style="color: var(--text-muted); margin-left: 10px;">${statusText}</span>
+                        <div style="margin-top: 4px;">${printedBadge}</div>
                     </div>
                     <label style="display: flex; align-items: center; gap: 8px;">
                         <input type="checkbox" class="order-checkbox" data-order-id="${order._id}" style="width: 18px; height: 18px;">
@@ -869,15 +882,12 @@ function displayActiveOrders(orders) {
                             🥤 İçecekleri Teslim Et
                         </button>
                     ` : ''}
-                    ${canDeliverFully ? `
-                        <button class="btn btn-primary btn-sm" onclick="deliverEntireOrder('${order._id}')" style="flex: 1;">
-                            ✅ Teslim Edildi
-                        </button>
-                    ` : `
-                        <div style="padding: 10px; background: rgba(255,165,0,0.1); border-radius: 8px; text-align: center; flex: 1;">
-                            <span style="color: #ffa500;">⏳ Mutfakta hazırlanıyor...</span>
-                        </div>
-                    `}
+                    <button class="btn btn-primary btn-sm" onclick="deliverEntireOrder('${order._id}')" style="flex: 1;">
+                        ✅ Teslim Edildi
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="cancelOrder('${order._id}')" style="padding: 8px 12px;">
+                        ❌
+                    </button>
                 </div>
             </div>
         `;
@@ -1356,3 +1366,36 @@ document.addEventListener('DOMContentLoaded', () => {
 // Make delivery functions globally accessible for onclick handlers
 window.deliverOrderBeverages = deliverOrderBeverages;
 window.deliverEntireOrder = deliverEntireOrder;
+
+// ============= TOAST BİLDİRİM =============
+function showToast(message, type = 'info') {
+    const old = document.getElementById('toast-notification');
+    if (old) old.remove();
+
+    const colors = {
+        success: 'linear-gradient(135deg, #11998e, #38ef7d)',
+        error:   'linear-gradient(135deg, #e94560, #ff6b6b)',
+        info:    'linear-gradient(135deg, #667eea, #764ba2)'
+    };
+
+    const toast = document.createElement('div');
+    toast.id = 'toast-notification';
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: ${colors[type] || colors.info};
+        color: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        z-index: 9999;
+        max-width: 400px;
+        transition: opacity 0.3s ease;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 4000);
+}

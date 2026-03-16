@@ -51,6 +51,19 @@ const orderSchema = new mongoose.Schema({
     total: {
         type: Number,
         required: false  // Not required - calculated by pre-save hook
+    },
+    // Yazıcı (fiş) entegrasyonu için alanlar
+    printed: {
+        type: Boolean,
+        default: false  // Bu sipariş yazıcıdan çıktı aldı mı?
+    },
+    printedAt: {
+        type: Date,
+        default: null   // Ne zaman basıldı?
+    },
+    orderNumber: {
+        type: Number,
+        default: null   // Günlük sıra numarası (001, 002, ...)
     }
 }, {
     timestamps: true
