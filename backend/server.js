@@ -7,11 +7,10 @@ const Order = require('./models/Order');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection
+// ─── MongoDB ─────────────────────────────────────────────────────────────────
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/pide-otagi', {
     useNewUrlParser: true,
     useUnifiedTopology: true
@@ -19,20 +18,29 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/pide-otag
     .then(() => console.log('✅ MongoDB bağlantısı başarılı'))
     .catch(err => console.error('❌ MongoDB bağlantı hatası:', err));
 
-// Health check endpoint
+// ─── Keep-alive (Render.com uyutmama) ────────────────────────────────────────
+// Print Agent ve diğer istemciler her 10 dakikada bunu çağırır
+app.get('/api/ping', (req, res) => {
+    res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// Sağlık kontrolü
 app.get('/', (req, res) => {
     res.json({
         message: '🍕 Pide Otağı API çalışıyor!',
-        version: '2.0.0',
+        version: '3.0.0',
         endpoints: {
             orders: '/api/orders',
             activeOrders: '/api/orders/active',
-            statistics: '/api/statistics/*'
+            unprintedOrders: '/api/orders/unprinted',
+            ping: '/api/ping'
         }
     });
 });
 
-// GET - Tüm siparişleri getir
+// ─── SİPARİŞLER ──────────────────────────────────────────────────────────────
+
+// Tüm siparişleri getir
 app.get('/api/orders', async (req, res) => {
     try {
         const orders = await Order.find().sort({ createdAt: -1 });
@@ -42,11 +50,11 @@ app.get('/api/orders', async (req, res) => {
     }
 });
 
-// GET - Aktif siparişleri getir (exclude cancelled, paid, and delivered)
+// Aktif siparişleri getir (sadece pending)
 app.get('/api/orders/active', async (req, res) => {
     try {
         const orders = await Order.find({
-            status: { $in: ['pending', 'preparing', 'ready'] }
+            status: 'pending'
         }).sort({ createdAt: -1 });
         res.json(orders);
     } catch (error) {
@@ -54,12 +62,12 @@ app.get('/api/orders/active', async (req, res) => {
     }
 });
 
-// GET - Basılmamış (unprinted) siparişleri getir — Print Agent bunu kullanır
+// Basılmamış siparişleri getir — Print Agent kullanır
 app.get('/api/orders/unprinted', async (req, res) => {
     try {
         const orders = await Order.find({
             printed: false,
-            status: { $nin: ['cancelled'] }
+            status: { $ne: 'cancelled' }
         }).sort({ createdAt: 1 });
         res.json(orders);
     } catch (error) {
@@ -67,60 +75,42 @@ app.get('/api/orders/unprinted', async (req, res) => {
     }
 });
 
-// PATCH - Siparişi basıldı olarak işaretle — Print Agent bunu çağırır
-app.patch('/api/orders/:id/mark-printed', async (req, res) => {
-    try {
-        const order = await Order.findByIdAndUpdate(
-            req.params.id,
-            { printed: true, printedAt: new Date() },
-            { new: true }
-        );
-        if (!order) {
-            return res.status(404).json({ error: 'Sipariş bulunamadı' });
-        }
-        res.json({ success: true, order });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// GET - Belirli bir siparişi getir
+// Belirli bir siparişi getir
 app.get('/api/orders/:id', async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
-        if (!order) {
-            return res.status(404).json({ error: 'Sipariş bulunamadı' });
-        }
+        if (!order) return res.status(404).json({ error: 'Sipariş bulunamadı' });
         res.json(order);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// POST - Yeni sipariş oluştur
+// Yeni sipariş oluştur
 app.post('/api/orders', async (req, res) => {
     try {
         const { tableNumber, items } = req.body;
 
         if (!tableNumber || !items || items.length === 0) {
-            return res.status(400).json({
-                error: 'Masa numarası ve en az bir ürün gerekli'
-            });
+            return res.status(400).json({ error: 'Masa numarası ve en az bir ürün gerekli' });
         }
 
-        // Günlük sıra numarası hesapla
+        // Günlük sıra numarası
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const todayCount = await Order.countDocuments({
-            createdAt: { $gte: today }
-        });
+        const todayCount = await Order.countDocuments({ createdAt: { $gte: today } });
         const orderNumber = todayCount + 1;
+
+        // Sadece içecek mi kontrol et (id > 7 = içecek)
+        const hasPide = items.some(i => i.id <= 7);
+        // Sadece içecekse otomatik printed: true yap (fiş basılmayacak)
+        const shouldPrint = hasPide;
 
         const order = new Order({
             tableNumber,
             items,
             orderNumber,
-            printed: false
+            printed: !shouldPrint   // sadece içecekse baştan true
         });
 
         await order.save();
@@ -130,205 +120,129 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
-// PUT - Sipariş durumunu güncelle
-app.put('/api/orders/:id', async (req, res) => {
-    try {
-        const { status } = req.body;
-
-        const validStatuses = ['pending', 'preparing', 'ready', 'delivered', 'cancelled', 'paid'];
-        if (!status || !validStatuses.includes(status)) {
-            return res.status(400).json({
-                error: `Geçersiz sipariş durumu. İzin verilen: ${validStatuses.join(', ')}`
-            });
-        }
-
-        const order = await Order.findByIdAndUpdate(
-            req.params.id,
-            { status },
-            { new: true }
-        );
-
-        if (!order) {
-            return res.status(404).json({ error: 'Sipariş bulunamadı' });
-        }
-
-        res.json(order);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// PATCH - Sipariş durumunu güncelle (shorter endpoint)
-app.patch('/api/orders/:id/status', async (req, res) => {
-    try {
-        const { status } = req.body;
-
-        const validStatuses = ['pending', 'preparing', 'ready', 'delivered', 'cancelled', 'paid'];
-        if (!status || !validStatuses.includes(status)) {
-            return res.status(400).json({
-                error: `Geçersiz sipariş durumu. İzin verilen: ${validStatuses.join(', ')}`
-            });
-        }
-
-        const order = await Order.findByIdAndUpdate(
-            req.params.id,
-            { status },
-            { new: true }
-        );
-
-        if (!order) {
-            return res.status(404).json({ error: 'Sipariş bulunamadı' });
-        }
-
-        res.json(order);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
-
-// DELETE - Sipariş sil
+// Siparişi iptal et
 app.delete('/api/orders/:id', async (req, res) => {
     try {
         const order = await Order.findByIdAndDelete(req.params.id);
-
-        if (!order) {
-            return res.status(404).json({ error: 'Sipariş bulunamadı' });
-        }
-
-        res.json({ message: 'Sipariş başarıyla silindi', order });
+        if (!order) return res.status(404).json({ error: 'Sipariş bulunamadı' });
+        res.json({ message: 'Sipariş iptal edildi', order });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// POST - Masa için tüm siparişleri ödenmiş olarak işaretle
+// Sipariş durumunu güncelle (sadece paid/cancelled gerekli artık)
+app.patch('/api/orders/:id/status', async (req, res) => {
+    try {
+        const { status } = req.body;
+        const validStatuses = ['pending', 'paid', 'cancelled', 'partially_paid'];
+        if (!status || !validStatuses.includes(status)) {
+            return res.status(400).json({ error: `Geçersiz durum. İzin verilen: ${validStatuses.join(', ')}` });
+        }
+
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
+            { status },
+            { new: true }
+        );
+        if (!order) return res.status(404).json({ error: 'Sipariş bulunamadı' });
+        res.json(order);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// PUT alias (geriye dönük uyumluluk)
+app.put('/api/orders/:id', async (req, res) => {
+    try {
+        const { status } = req.body;
+        const validStatuses = ['pending', 'paid', 'cancelled', 'partially_paid'];
+        if (!status || !validStatuses.includes(status)) {
+            return res.status(400).json({ error: `Geçersiz durum.` });
+        }
+        const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
+        if (!order) return res.status(404).json({ error: 'Sipariş bulunamadı' });
+        res.json(order);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Siparişi basıldı olarak işaretle — Print Agent çağırır
+app.patch('/api/orders/:id/mark-printed', async (req, res) => {
+    try {
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
+            { printed: true, printedAt: new Date() },
+            { new: true }
+        );
+        if (!order) return res.status(404).json({ error: 'Sipariş bulunamadı' });
+        res.json({ success: true, order });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// ─── KASA ENDPOİNT'LERİ ──────────────────────────────────────────────────────
+
+// Masa için tüm siparişleri ödenmiş yap
 app.post('/api/tables/:tableNumber/pay-all', async (req, res) => {
     try {
         const { tableNumber } = req.params;
-
         const orders = await Order.find({
-            tableNumber: tableNumber,
+            tableNumber,
             status: { $nin: ['cancelled', 'paid'] }
         });
 
-        let modifiedCount = 0;
         for (const order of orders) {
-            // Mark all items as paid
-            order.items.forEach(item => {
-                item.paidStatus = true;
-            });
+            order.items.forEach(item => { item.paidStatus = true; });
             order.status = 'paid';
             await order.save();
-            modifiedCount++;
         }
 
-        res.json({
-            message: `Masa ${tableNumber} için ${modifiedCount} sipariş ödendi`,
-            modifiedCount: modifiedCount
-        });
+        res.json({ message: `Masa ${tableNumber} için ${orders.length} sipariş ödendi`, modifiedCount: orders.length });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// POST - Mark specific items in an order as paid
+// Belirli kalemleri ödenmiş yap
 app.post('/api/orders/:orderId/pay-items', async (req, res) => {
     try {
         const { orderId } = req.params;
         const { itemIndices } = req.body;
-
-        if (!Array.isArray(itemIndices)) {
-            return res.status(400).json({ error: 'itemIndices must be an array' });
-        }
+        if (!Array.isArray(itemIndices)) return res.status(400).json({ error: 'itemIndices array olmalı' });
 
         const order = await Order.findById(orderId);
-        if (!order) {
-            return res.status(404).json({ error: 'Order not found' });
-        }
+        if (!order) return res.status(404).json({ error: 'Sipariş bulunamadı' });
 
-        // Mark selected items as paid
-        let paidCount = 0;
         itemIndices.forEach(index => {
             if (index >= 0 && index < order.items.length) {
                 order.items[index].paidStatus = true;
-                paidCount++;
             }
         });
 
-        // Update order status based on paid items
-        const allItemsPaid = order.items.every(item => item.paidStatus);
-        const someItemsPaid = order.items.some(item => item.paidStatus);
-
-        if (allItemsPaid) {
-            order.status = 'paid';
-        } else if (someItemsPaid) {
-            order.status = 'partially_paid';
-        }
+        const allPaid = order.items.every(i => i.paidStatus);
+        const somePaid = order.items.some(i => i.paidStatus);
+        if (allPaid) order.status = 'paid';
+        else if (somePaid) order.status = 'partially_paid';
 
         await order.save();
-
-        res.json({
-            message: `${paidCount} ürün ödendi`,
-            paidCount,
-            orderStatus: order.status,
-            order
-        });
+        res.json({ message: `${itemIndices.length} ürün ödendi`, order });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// POST - Mark specific items as delivered
-app.post('/api/orders/:orderId/deliver-items', async (req, res) => {
-    try {
-        const { orderId } = req.params;
-        const { itemIndices } = req.body;
-
-        if (!Array.isArray(itemIndices)) {
-            return res.status(400).json({ error: 'itemIndices must be an array' });
-        }
-
-        const order = await Order.findById(orderId);
-        if (!order) {
-            return res.status(404).json({ error: 'Sipariş bulunamadı' });
-        }
-
-        // Mark specified items as delivered
-        itemIndices.forEach(index => {
-            if (order.items[index]) {
-                order.items[index].deliveredStatus = true;
-            }
-        });
-
-        // Check if all items are delivered
-        const allDelivered = order.items.every(item => item.deliveredStatus);
-        if (allDelivered && order.status !== 'delivered') {
-            order.status = 'delivered';
-        }
-
-        await order.save();
-
-        res.json({
-            message: 'Items marked as delivered',
-            order,
-            allDelivered
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// GET - Get all items for a table in payment view format
+// Masa ödeme görünümü
 app.get('/api/tables/:tableNumber/payment-view', async (req, res) => {
     try {
         const { tableNumber } = req.params;
-
         const orders = await Order.find({
-            tableNumber: tableNumber,
+            tableNumber,
             status: { $nin: ['cancelled', 'paid'] }
         }).sort({ createdAt: 1 });
 
-        // Flatten all items with order reference
         const allItems = [];
         orders.forEach(order => {
             order.items.forEach((item, itemIndex) => {
@@ -347,14 +261,8 @@ app.get('/api/tables/:tableNumber/payment-view', async (req, res) => {
             });
         });
 
-        // Calculate totals
-        const totalUnpaid = allItems
-            .filter(item => !item.paidStatus)
-            .reduce((sum, item) => sum + item.itemTotal, 0);
-
-        const totalPaid = allItems
-            .filter(item => item.paidStatus)
-            .reduce((sum, item) => sum + item.itemTotal, 0);
+        const totalUnpaid = allItems.filter(i => !i.paidStatus).reduce((s, i) => s + i.itemTotal, 0);
+        const totalPaid = allItems.filter(i => i.paidStatus).reduce((s, i) => s + i.itemTotal, 0);
 
         res.json({
             tableNumber,
@@ -363,67 +271,15 @@ app.get('/api/tables/:tableNumber/payment-view', async (req, res) => {
             totalPaid,
             grandTotal: totalUnpaid + totalPaid,
             itemCount: allItems.length,
-            unpaidItemCount: allItems.filter(item => !item.paidStatus).length
+            unpaidItemCount: allItems.filter(i => !i.paidStatus).length
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// GET - Masa için kişilere göre sipariş dökümü
-app.get('/api/tables/:tableNumber/breakdown', async (req, res) => {
-    try {
-        const { tableNumber } = req.params;
+// ─── İSTATİSTİKLER ───────────────────────────────────────────────────────────
 
-        const orders = await Order.find({
-            tableNumber: tableNumber,
-            status: { $nin: ['cancelled', 'paid'] }
-        });
-
-        // Group items by person
-        const personBreakdown = {};
-        let totalAmount = 0;
-
-        orders.forEach(order => {
-            order.items.forEach(item => {
-                const personNum = item.personNumber || 1; // Default to Kişi 1
-
-                if (!personBreakdown[personNum]) {
-                    personBreakdown[personNum] = {
-                        personNumber: personNum,
-                        items: [],
-                        total: 0
-                    };
-                }
-
-                const itemTotal = item.price * item.quantity;
-                personBreakdown[personNum].items.push({
-                    name: item.name,
-                    quantity: item.quantity,
-                    price: item.price,
-                    total: itemTotal
-                });
-                personBreakdown[personNum].total += itemTotal;
-                totalAmount += itemTotal;
-            });
-        });
-
-        // Convert to array and sort by person number
-        const breakdown = Object.values(personBreakdown).sort((a, b) => a.personNumber - b.personNumber);
-
-        res.json({
-            tableNumber,
-            breakdown,
-            totalAmount,
-            personCount: breakdown.length
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-
-// GET - Günlük istatistikler
 app.get('/api/statistics/daily', async (req, res) => {
     try {
         const date = req.query.date || new Date().toISOString().split('T')[0];
@@ -432,248 +288,78 @@ app.get('/api/statistics/daily', async (req, res) => {
         const endDate = new Date(date);
         endDate.setHours(23, 59, 59, 999);
 
-        const orders = await Order.find({
-            createdAt: { $gte: startDate, $lte: endDate }
-        });
-
-        // Calculate statistics
+        const orders = await Order.find({ createdAt: { $gte: startDate, $lte: endDate } });
         const totalOrders = orders.length;
-        const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+        const totalRevenue = orders.reduce((s, o) => s + (o.total || 0), 0);
 
-        // Item breakdown
         const itemMap = {};
         let totalItemsSold = 0;
         orders.forEach(order => {
             order.items.forEach(item => {
                 totalItemsSold += item.quantity;
-                if (!itemMap[item.id]) {
-                    itemMap[item.id] = {
-                        id: item.id,
-                        name: item.name,
-                        count: 0,
-                        revenue: 0
-                    };
-                }
+                if (!itemMap[item.id]) itemMap[item.id] = { id: item.id, name: item.name, count: 0, revenue: 0 };
                 itemMap[item.id].count += item.quantity;
                 itemMap[item.id].revenue += item.price * item.quantity;
             });
         });
 
         const itemBreakdown = Object.values(itemMap).sort((a, b) => b.count - a.count);
-        const mostPopularItem = itemBreakdown[0] || null;
-
-        // Status breakdown
         const statusBreakdown = {
             pending: orders.filter(o => o.status === 'pending').length,
-            preparing: orders.filter(o => o.status === 'preparing').length,
-            ready: orders.filter(o => o.status === 'ready').length,
-            delivered: orders.filter(o => o.status === 'delivered').length,
             paid: orders.filter(o => o.status === 'paid').length,
             cancelled: orders.filter(o => o.status === 'cancelled').length
         };
 
         res.json({
-            date,
-            totalOrders,
-            totalRevenue,
-            totalItemsSold,
+            date, totalOrders, totalRevenue, totalItemsSold,
             averageOrderValue: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0,
-            mostPopularItem,
-            itemBreakdown,
-            statusBreakdown
+            mostPopularItem: itemBreakdown[0] || null,
+            itemBreakdown, statusBreakdown
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// GET - Aylık istatistikler
 app.get('/api/statistics/monthly', async (req, res) => {
     try {
         const month = req.query.month || new Date().toISOString().slice(0, 7);
         const [year, monthNum] = month.split('-').map(Number);
-
         const startDate = new Date(year, monthNum - 1, 1);
         const endDate = new Date(year, monthNum, 0, 23, 59, 59, 999);
 
-        const orders = await Order.find({
-            createdAt: { $gte: startDate, $lte: endDate }
-        });
-
-        // Calculate statistics (same logic as daily)
+        const orders = await Order.find({ createdAt: { $gte: startDate, $lte: endDate } });
         const totalOrders = orders.length;
-        const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+        const totalRevenue = orders.reduce((s, o) => s + (o.total || 0), 0);
 
         const itemMap = {};
-        let totalItemsSold = 0;
         orders.forEach(order => {
             order.items.forEach(item => {
-                totalItemsSold += item.quantity;
-                if (!itemMap[item.id]) {
-                    itemMap[item.id] = {
-                        id: item.id,
-                        name: item.name,
-                        count: 0,
-                        revenue: 0
-                    };
-                }
+                if (!itemMap[item.id]) itemMap[item.id] = { id: item.id, name: item.name, count: 0, revenue: 0 };
                 itemMap[item.id].count += item.quantity;
                 itemMap[item.id].revenue += item.price * item.quantity;
             });
         });
 
-        const itemBreakdown = Object.values(itemMap).sort((a, b) => b.count - a.count);
-        const mostPopularItem = itemBreakdown[0] || null;
-
-        const statusBreakdown = {
-            pending: orders.filter(o => o.status === 'pending').length,
-            preparing: orders.filter(o => o.status === 'preparing').length,
-            ready: orders.filter(o => o.status === 'ready').length,
-            delivered: orders.filter(o => o.status === 'delivered').length,
-            paid: orders.filter(o => o.status === 'paid').length,
-            cancelled: orders.filter(o => o.status === 'cancelled').length
-        };
-
         res.json({
-            month,
-            totalOrders,
-            totalRevenue,
-            totalItemsSold,
+            month, totalOrders, totalRevenue,
             averageOrderValue: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0,
-            mostPopularItem,
-            itemBreakdown,
-            statusBreakdown
+            mostPopularItem: Object.values(itemMap).sort((a, b) => b.count - a.count)[0] || null,
+            itemBreakdown: Object.values(itemMap).sort((a, b) => b.count - a.count)
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// GET - Haftalık trendler
-app.get('/api/statistics/weekday-trends', async (req, res) => {
-    try {
-        const weeks = parseInt(req.query.weeks) || 4;
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - (weeks * 7));
-
-        const orders = await Order.find({
-            createdAt: { $gte: startDate, $lte: endDate },
-            status: { $ne: 'cancelled' }
-        });
-
-        // Group by weekday
-        const weekdayMap = {
-            0: { name: 'Pazar', orders: 0, revenue: 0, count: 0 },
-            1: { name: 'Pazartesi', orders: 0, revenue: 0, count: 0 },
-            2: { name: 'Salı', orders: 0, revenue: 0, count: 0 },
-            3: { name: 'Çarşamba', orders: 0, revenue: 0, count: 0 },
-            4: { name: 'Perşembe', orders: 0, revenue: 0, count: 0 },
-            5: { name: 'Cuma', orders: 0, revenue: 0, count: 0 },
-            6: { name: 'Cumartesi', orders: 0, revenue: 0, count: 0 }
-        };
-
-        orders.forEach(order => {
-            const dayOfWeek = new Date(order.createdAt).getDay();
-            weekdayMap[dayOfWeek].orders += 1;
-            weekdayMap[dayOfWeek].revenue += order.total || 0;
-            weekdayMap[dayOfWeek].count += 1;
-        });
-
-        const weekdayAverages = {};
-        let bestDay = null;
-        let worstDay = null;
-        let maxRevenue = 0;
-        let minRevenue = Infinity;
-
-        Object.entries(weekdayMap).forEach(([day, data]) => {
-            const avgRevenue = data.count > 0 ? Math.round(data.revenue / weeks) : 0;
-            weekdayAverages[data.name] = {
-                orders: Math.round(data.orders / weeks),
-                revenue: avgRevenue
-            };
-
-            if (avgRevenue > maxRevenue) {
-                maxRevenue = avgRevenue;
-                bestDay = data.name;
-            }
-            if (avgRevenue < minRevenue && avgRevenue > 0) {
-                minRevenue = avgRevenue;
-                worstDay = data.name;
-            }
-        });
-
-        res.json({
-            weekdayAverages,
-            bestDay,
-            worstDay
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// GET - En çok satılan ürünler
-app.get('/api/statistics/top-items', async (req, res) => {
-    try {
-        const period = req.query.period || 'day';
-        const limit = parseInt(req.query.limit) || 10;
-
-        let startDate;
-        const endDate = new Date();
-
-        if (period === 'day') {
-            startDate = new Date();
-            startDate.setHours(0, 0, 0, 0);
-        } else if (period === 'week') {
-            startDate = new Date();
-            startDate.setDate(startDate.getDate() - 7);
-        } else if (period === 'month') {
-            startDate = new Date();
-            startDate.setMonth(startDate.getMonth() - 1);
-        }
-
-        const orders = await Order.find({
-            createdAt: { $gte: startDate, $lte: endDate },
-            status: { $ne: 'cancelled' }
-        });
-
-        const itemMap = {};
-        orders.forEach(order => {
-            order.items.forEach(item => {
-                if (!itemMap[item.id]) {
-                    itemMap[item.id] = {
-                        id: item.id,
-                        name: item.name,
-                        count: 0,
-                        revenue: 0
-                    };
-                }
-                itemMap[item.id].count += item.quantity;
-                itemMap[item.id].revenue += item.price * item.quantity;
-            });
-        });
-
-        const topItems = Object.values(itemMap)
-            .sort((a, b) => b.count - a.count)
-            .slice(0, limit);
-
-        res.json(topItems);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Error handling middleware
+// ─── HATA YÖNETİMİ ───────────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Sunucu hatası!' });
 });
 
-// Start server
+// ─── BAŞLAT ──────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
     console.log(`🚀 Server ${PORT} portunda çalışıyor`);
-    console.log(`📍 Health check: http://localhost:${PORT}`);
-    console.log(`📍 API endpoint: http://localhost:${PORT}/api/orders`);
-    console.log(`📍 Statistics: http://localhost:${PORT}/api/statistics/daily`);
+    console.log(`📍 Keep-alive: http://localhost:${PORT}/api/ping`);
 });

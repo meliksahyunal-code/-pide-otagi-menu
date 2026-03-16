@@ -1,18 +1,15 @@
-// Kitchen Panel JavaScript
+// Pide Otağı - Mutfak Paneli (Yalnızca Görüntüleme)
 
-let currentFilter = 'all';
 let currentCategory = 'all'; // 'all', 'pides', 'beverages'
 let orders = [];
 
 // Helper function to determine if item is pide or beverage
 function getItemType(itemId) {
-    // Pides: ID 1-7, Beverages: ID 8-17
     return itemId <= 7 ? 'pide' : 'beverage';
 }
 
 // Helper function to group and display items by person for kitchen
 function generatePersonGroupedItemsForKitchen(items) {
-    // Group by person
     const byPerson = {};
     items.forEach(item => {
         const personNum = item.personNumber || 1;
@@ -22,17 +19,17 @@ function generatePersonGroupedItemsForKitchen(items) {
         byPerson[personNum].push(item);
     });
 
-    // If only one person, show simple list
     if (Object.keys(byPerson).length === 1 && byPerson[1]) {
         return items.map(item => `
             <div class="order-item">
-                <span><span class="item-quantity">${item.quantity}x</span> ${item.name}</span>
-                <span>${item.price * item.quantity}₺</span>
+                <span>
+                    ${getItemType(item.id) === 'pide' ? '🍞' : '🥤'}
+                    <span class="item-quantity">${item.quantity}x</span> ${item.name}
+                </span>
             </div>
         `).join('');
     }
 
-    // Multiple people - show with person badges
     const personColors = ['#667eea', '#f093fb', '#38ef7d', '#f4a261', '#e76f51'];
     let html = '';
     Object.keys(byPerson).sort((a, b) => parseInt(a) - parseInt(b)).forEach((personNum, index) => {
@@ -44,9 +41,9 @@ function generatePersonGroupedItemsForKitchen(items) {
                 <div class="order-item">
                     <span>
                         <span style="background: ${color}; color: white; padding: 3px 10px; border-radius: 15px; font-size: 0.85rem; margin-right: 8px; font-weight: 700;">Kişi ${personNum}</span>
+                        ${getItemType(item.id) === 'pide' ? '🍞' : '🥤'}
                         <span class="item-quantity">${item.quantity}x</span> ${item.name}
                     </span>
-                    <span>${item.price * item.quantity}₺</span>
                 </div>
             `;
         });
@@ -55,13 +52,14 @@ function generatePersonGroupedItemsForKitchen(items) {
     return html;
 }
 
-// Load orders from API
+// Load ACTIVE orders from API (sadece pending olanlar çekilir)
 async function loadKitchenOrders() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/orders/active`);
         if (!response.ok) throw new Error('Siparişler yüklenemedi');
 
         orders = await response.json();
+        
         displayKitchenOrders();
         updateOrderCount();
     } catch (error) {
@@ -71,23 +69,19 @@ async function loadKitchenOrders() {
     }
 }
 
-// Display orders based on filter and category
+// Display orders based on category
 function displayKitchenOrders() {
     const container = document.getElementById('kitchenOrders');
 
+    // Mutfak panelinde sadece "pending" siparişler gösterileceği için ekstra durum filtresine gerek yok
     let filteredOrders = orders;
 
-    // First filter by status
-    if (currentFilter !== 'all') {
-        filteredOrders = orders.filter(o => o.status === currentFilter);
-    }
-
     if (!filteredOrders || filteredOrders.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Gösterilecek sipariş yok</p>';
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; font-size: 1.2rem; padding: 40px;">Takip edilecek sipariş yok ✓</p>';
         return;
     }
 
-    // Then filter by category
+    // Filter by category
     if (currentCategory !== 'all') {
         filteredOrders = filteredOrders.map(order => {
             const filteredItems = order.items.filter(item => {
@@ -99,75 +93,40 @@ function displayKitchenOrders() {
     }
 
     if (!filteredOrders || filteredOrders.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Bu kategoride sipariş yok</p>';
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 40px;">Bu kategoride sipariş yok</p>';
         return;
     }
 
-    // Group by table
-    const ordersByTable = {};
-    filteredOrders.forEach(order => {
-        if (!ordersByTable[order.tableNumber]) {
-            ordersByTable[order.tableNumber] = [];
-        }
-        ordersByTable[order.tableNumber].push(order);
-    });
+    // Sort by oldest first (ilk gelen ilk gösterilir)
+    filteredOrders.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
     let html = '';
-    Object.entries(ordersByTable).forEach(([tableNum, tableOrders]) => {
-        tableOrders.forEach(order => {
-            const statusText = getStatusText(order.status);
-            const statusClass = getStatusClass(order.status);
-            const total = order.total || order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    filteredOrders.forEach(order => {
+        const timeSince = getTimeSince(order.createdAt);
+        const orderTime = new Date(order.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        
+        // Fiş durumu rozeti
+        const printBadge = order.printed 
+            ? '<span style="color:#38ef7d; font-size: 0.8rem; margin-left:10px;">🖨️ Fiş basıldı</span>' 
+            : '<span style="color:#f4a261; font-size: 0.8rem; margin-left:10px;">⏳ Fiş bekleniyor</span>';
 
-            // Calculate time since order
-            const timeSince = getTimeSince(order.createdAt);
-
-            // Check if order has beverages only
-            const hasBeveragesOnly = order.items.every(item => getItemType(item.id) === 'beverage');
-
-            html += `
-        <div class="order-card ${statusClass}">
-          <div class="order-header">
+        html += `
+        <div class="order-card" style="border-left: 5px solid #e94560;">
+          <div class="order-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px;">
             <div>
-              <span class="table-badge">Masa ${order.tableNumber}</span>
-              <span style="color: var(--text-muted); font-size: 0.9rem; margin-left: 10px;">⏱️ ${timeSince}</span>
+              <span class="table-badge" style="font-size: 1.2rem; padding: 8px 15px;">Masa ${order.tableNumber}</span>
+              <span style="color: var(--text-muted); font-size: 0.95rem; margin-left: 10px;">⏱️ ${timeSince} (${orderTime})</span>
+              ${printBadge}
             </div>
-            <span class="status-badge">${statusText}</span>
           </div>
           <div class="order-items">
             ${generatePersonGroupedItemsForKitchen(order.items)}
           </div>
-          <div class="order-total">
-            <span class="total-label">Toplam:</span>
-            <span class="total-amount">${total}₺</span>
-          </div>
-          ${hasBeveragesOnly ? '<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; margin: 10px 0;">İçecekler garson tarafından servise hazır</p>' : '<div class="kitchen-actions">'}
-            ${getKitchenActionButtons(order)}
-          </div>'}
         </div>
       `;
-        });
     });
 
     container.innerHTML = html;
-}
-
-// Get status text in Turkish
-function getStatusText(status) {
-    const statusMap = {
-        'pending': 'Bekliyor',
-        'preparing': 'Hazırlanıyor',
-        'ready': '✅ Hazır',
-        'delivered': 'Teslim Edildi',
-        'cancelled': 'İptal Edildi',
-        'paid': 'Ödendi'
-    };
-    return statusMap[status] || status;
-}
-
-// Get status class for styling
-function getStatusClass(status) {
-    return `order-status-${status}`;
 }
 
 // Get time since order was created
@@ -178,123 +137,33 @@ function getTimeSince(createdAt) {
     const diffMins = Math.floor(diffMs / 60000);
 
     if (diffMins < 1) return 'Şimdi';
-    if (diffMins < 60) return `${diffMins} dk önce`;
+    if (diffMins < 60) return `${diffMins} dk`;
     const hours = Math.floor(diffMins / 60);
     const mins = diffMins % 60;
-    return `${hours}s ${mins}dk önce`;
-}
-
-// Get kitchen action buttons based on order status
-function getKitchenActionButtons(order) {
-    if (order.status === 'pending') {
-        return `
-      <button class="btn btn-primary" onclick="updateStatus('${order._id}', 'preparing')">
-        👨‍🍳 Hazırlamaya Başla
-      </button>
-    `;
-    }
-
-    if (order.status === 'preparing') {
-        return `
-      <button class="btn btn-success" onclick="updateStatus('${order._id}', 'ready')">
-        ✅ Hazır
-      </button>
-    `;
-    }
-
-    if (order.status === 'ready') {
-        return `
-      <div style="text-align: center; color: var(--success); font-weight: 600;">
-        ✅ Garson bekleniyor...
-      </div>
-    `;
-    }
-
-    return '<span style="color: var(--text-muted);">-</span>';
-}
-
-// Update order status
-async function updateStatus(orderId, newStatus) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/status`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ status: newStatus })
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Durum güncellenemedi');
-        }
-
-        // Play sound for ready status
-        if (newStatus === 'ready') {
-            playNotificationSound();
-        }
-
-        await loadKitchenOrders();
-    } catch (error) {
-        console.error('Durum güncelleme hatası:', error);
-        alert(`Hata: ${error.message}`);
-    }
+    return `${hours}s ${mins}dk`;
 }
 
 // Update order count badge
 function updateOrderCount() {
-    const pendingCount = orders.filter(o => o.status === 'pending').length;
     const orderCountBadge = document.getElementById('orderCount');
-
     if (orderCountBadge) {
-        if (pendingCount === 0) {
+        if (orders.length === 0) {
             orderCountBadge.textContent = 'Bekleyen Sipariş Yok ✓';
             orderCountBadge.style.background = '#2a9d8f';
         } else {
-            orderCountBadge.textContent = `${pendingCount} Bekleyen Sipariş`;
+            orderCountBadge.textContent = `${orders.length} Bekleyen Sipariş`;
             orderCountBadge.style.background = '#e94560';
         }
     }
 }
 
-// Play notification sound
-function playNotificationSound() {
-    // Simple beep using Web Audio API
-    try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
-    } catch (e) {
-        console.log('Audio not supported');
-    }
-}
-
-// Initialize on page load
+// Listeners
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Kitchen Panel loaded');
-
-    // Refresh button event listener
     const refreshBtn = document.getElementById('refreshKitchenBtn');
     if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => {
-            console.log('Refreshing kitchen orders...');
-            loadKitchenOrders();
-        });
+        refreshBtn.addEventListener('click', loadKitchenOrders);
     }
 
-    // Category filter button event listeners
     document.querySelectorAll('[data-category]').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('[data-category]').forEach(b => b.classList.remove('active'));
@@ -304,17 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Filter button event listeners
-    document.querySelectorAll('[data-filter]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentFilter = btn.dataset.filter;
-            displayKitchenOrders();
-        });
-    });
-
     loadKitchenOrders();
-    // Auto-refresh every 5 seconds
-    setInterval(loadKitchenOrders, 5000);
+    setInterval(loadKitchenOrders, 5000); // 5sn'de bir taze le
 });

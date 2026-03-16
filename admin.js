@@ -317,23 +317,134 @@ async function createOrder() {
     }
 }
 
-// ============= ACTIVE ORDERS MANAGEMENT =============
+// ============= AKTİF SİPARİŞ YÖNETİMİ =============
 async function loadActiveOrders() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/orders/active`);
         if (!response.ok) throw new Error('Siparişler yüklenemedi');
-
         const orders = await response.json();
         displayActiveOrders(orders);
     } catch (error) {
         console.error('Sipariş yükleme hatası:', error);
-        document.getElementById('ordersContainer').innerHTML =
-            '<p style="color: red; text-align: center;">Siparişler yüklenemedi. Sunucuya bağlanılamıyor.</p>';
+        const container = document.getElementById('ordersContainer');
+        if (container) container.innerHTML = '<p style="color:red;text-align:center;">Siparişler yüklenemedi.</p>';
     }
 }
 
-// Helper function to generate person-grouped items HTML
-function generatePersonGroupedItems(items) {
+function displayActiveOrders(orders) {
+    const container = document.getElementById('ordersContainer');
+    if (!container) return;
+
+    if (!orders || orders.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px;">Aktif sipariş yok ✓</p>';
+        return;
+    }
+
+    // Masalara göre grupla
+    const byTable = {};
+    orders.forEach(o => {
+        if (!byTable[o.tableNumber]) byTable[o.tableNumber] = [];
+        byTable[o.tableNumber].push(o);
+    });
+
+    let html = '';
+    Object.keys(byTable).sort().forEach(tableNum => {
+        const tableOrders = byTable[tableNum];
+        const tableTotal = tableOrders.reduce((s, o) =>
+            s + o.items.reduce((ss, i) => ss + i.price * i.quantity, 0), 0);
+
+        html += `
+        <div style="background:var(--card-bg);border-radius:16px;padding:20px;
+                    margin-bottom:20px;border:1px solid rgba(255,255,255,0.1);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                <span style="background:var(--primary-gold);color:var(--bg-dark);
+                             padding:8px 16px;border-radius:10px;font-weight:700;font-size:1.1rem;">
+                    Masa ${tableNum}
+                </span>
+                <span style="color:var(--primary-gold);font-weight:700;font-size:1.1rem;">
+                    ${tableTotal}₺
+                </span>
+            </div>
+        `;
+
+        tableOrders.forEach(order => {
+            const orderTime = new Date(order.createdAt).toLocaleTimeString('tr-TR',
+                { hour: '2-digit', minute: '2-digit' });
+            const printBadge = order.printed
+                ? '<span style="color:#38ef7d;font-size:0.8rem;">🖨️ Fiş basıldı</span>'
+                : '<span style="color:#f4a261;font-size:0.8rem;">⏳ Fiş bekleniyor</span>';
+
+            html += `
+            <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;margin-top:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <div>
+                        <span style="color:var(--text-muted);font-size:0.9rem;">⏰ ${orderTime}</span>
+                        <span style="margin-left:12px;">${printBadge}</span>
+                    </div>
+                    <button onclick="cancelOrder('${order._id}')"
+                        style="background:rgba(233,69,96,0.2);border:1px solid #e94560;
+                               color:#e94560;border-radius:8px;padding:4px 12px;
+                               cursor:pointer;font-size:0.85rem;">
+                        ❌ İptal
+                    </button>
+                </div>
+            `;
+
+            // Kişiye göre grupla
+            const byPerson = {};
+            order.items.forEach(item => {
+                const p = item.personNumber || 1;
+                if (!byPerson[p]) byPerson[p] = [];
+                byPerson[p].push(item);
+            });
+
+            const multiPerson = Object.keys(byPerson).length > 1;
+            const personColors = ['#667eea','#f093fb','#38ef7d','#f4a261','#e76f51'];
+
+            Object.keys(byPerson).sort((a, b) => a - b).forEach((pNum, idx) => {
+                const color = personColors[idx % personColors.length];
+                if (multiPerson) {
+                    html += `<div style="font-size:0.8rem;color:${color};
+                                        margin-bottom:4px;font-weight:600;">Kişi ${pNum}</div>`;
+                }
+                byPerson[pNum].forEach(item => {
+                    const emoji = item.id <= 7 ? '🍞' : '🥤';
+                    html += `
+                    <div style="display:flex;justify-content:space-between;
+                                padding:6px 8px;border-radius:8px;
+                                background:rgba(255,255,255,0.03);margin-bottom:4px;">
+                        <span style="color:var(--text-light);">
+                            ${emoji} ${item.quantity}x ${item.name}
+                        </span>
+                        <span style="color:var(--primary-gold);">${item.price * item.quantity}₺</span>
+                    </div>`;
+                });
+            });
+
+            html += '</div>';
+        });
+
+        html += '</div>';
+    });
+
+    container.innerHTML = html;
+}
+
+async function cancelOrder(orderId) {
+    if (!confirm('Bu siparişi iptal etmek istediğinizden emin misiniz?')) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Sipariş iptal edilemedi');
+        showToast('❌ Sipariş iptal edildi', 'error');
+        await loadActiveOrders();
+    } catch (err) {
+        alert('Hata: ' + err.message);
+    }
+}
+
+
+// ============= İSTATİSTİK PANELİ =============
+
     // Group by person
     const byPerson = {};
     items.forEach(item => {
